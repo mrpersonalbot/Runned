@@ -1,71 +1,86 @@
-import type { BrandDirectoryEntry, DemoShoe } from "@/lib/types";
+import type { BrandDirectoryEntry, DemoShoe, PriceSnapshot, ShoeCategory } from "@/lib/types";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 const observedAt = "2026-08-18";
 
-// This seed demonstrates the scalable catalog shape. Community scores remain synthetic demo data.
-// Price snapshots are only attached when a current source was verified; otherwise price stays unknown.
-export const demoShoes: DemoShoe[] = [
-  {
-    slug: "adidas-adizero-evo-sl", brand: "adidas", model: "Adizero EVO SL", category: "tempo", terrain: "road",
-    msrpIdr: 2500000, currentPrice: { priceIdr: 2500000, sourceLabel: "adidas Indonesia", sourceUrl: "https://www.adidas.co.id/id/sepatu-adizero-evo-sl/JR3414.html", sourceType: "official-brand", observedAt },
-    weightG: 224, dropMm: 6, heelStackMm: 38, forefootStackMm: 32, midsole: "LIGHTSTRIKE PRO", plate: "None",
-    sourceStatus: "verified", sourceLabel: "adidas Indonesia", sourceUrl: "https://www.adidas.co.id/id/sepatu-adizero-evo-sl/JR3414.html",
-    description: "Lightweight performance trainer for daily speed and tempo work.", community: demoCommunity, reviewCount: 148, overallRating: 4.6, buyAgainPct: 91, useCases: ["Tempo", "Daily", "Intervals"], accent: "from-lime-300 to-yellow-100"
-  },
-  {
-    slug: "nike-pegasus-41", brand: "Nike", model: "Pegasus 41", category: "daily", terrain: "road",
-    msrpIdr: 2099000, currentPrice: { priceIdr: 2099000, sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/t/pegasus-41-road-running-shoes-RZm89S/FD2722-102", sourceType: "official-brand", observedAt },
-    weightG: 297, dropMm: 10, heelStackMm: null, forefootStackMm: null, midsole: "ReactX + Air Zoom", plate: "None",
-    sourceStatus: "verified", sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/t/pegasus-41-road-running-shoes-RZm89S/FD2722-102",
-    description: "Durable everyday road trainer with responsive cushioning.", community: demoCommunity, reviewCount: 203, overallRating: 4.3, buyAgainPct: 83, useCases: ["Daily", "Easy", "Walking"], accent: "from-sky-300 to-cyan-100"
-  },
-  {
-    slug: "asics-novablast-5", brand: "ASICS", model: "Novablast 5", category: "daily", terrain: "road", msrpIdr: null, currentPrice: null,
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: "None", sourceStatus: "catalog-only", sourceLabel: "Catalog entry", sourceUrl: null,
-    description: "Bouncy daily trainer; price awaiting current Indonesia verification.", community: demoCommunity, reviewCount: 176, overallRating: 4.5, buyAgainPct: 89, useCases: ["Daily", "Long run", "Easy"], accent: "from-orange-300 to-amber-100"
-  },
-  {
-    slug: "hoka-clifton-10", brand: "HOKA", model: "Clifton 10", category: "max-cushion", terrain: "road", msrpIdr: null, currentPrice: null,
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: "None", sourceStatus: "catalog-only", sourceLabel: "Catalog entry", sourceUrl: null,
-    description: "Cushioned road-running option; price awaiting current Indonesia verification.", community: demoCommunity, reviewCount: 94, overallRating: 4.2, buyAgainPct: 80, useCases: ["Easy", "Long run", "Recovery"], accent: "from-violet-300 to-fuchsia-100"
-  },
-  {
-    slug: "mills-hypercharge-r26", brand: "MILLS", model: "Hypercharge R26", category: "race", terrain: "road", msrpIdr: 2499000,
-    currentPrice: { priceIdr: 2499000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null, sourceStatus: "verified", sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear",
-    description: "Indonesian performance running model from MILLS.", community: demoCommunity, reviewCount: 0, overallRating: 0, buyAgainPct: 0, useCases: ["Race", "Tempo"], accent: "from-rose-300 to-orange-100", isLocalIndonesia: true
-  },
-  {
-    slug: "mills-enercharge-m2", brand: "MILLS", model: "Enercharge M2", category: "tempo", terrain: "road", msrpIdr: 1799000,
-    currentPrice: { priceIdr: 1799000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null, sourceStatus: "verified", sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear",
-    description: "Performance-focused Indonesian road shoe.", community: demoCommunity, reviewCount: 0, overallRating: 0, buyAgainPct: 0, useCases: ["Tempo", "Daily"], accent: "from-red-300 to-amber-100", isLocalIndonesia: true
-  },
-  {
-    slug: "mills-enerpro-zenith", brand: "MILLS", model: "Enerpro Zenith", category: "daily", terrain: "road", msrpIdr: 899000,
-    currentPrice: { priceIdr: 899000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null, sourceStatus: "verified", sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear",
-    description: "Value-oriented Indonesian running shoe.", community: demoCommunity, reviewCount: 0, overallRating: 0, buyAgainPct: 0, useCases: ["Daily", "Easy"], accent: "from-cyan-300 to-blue-100", isLocalIndonesia: true
-  },
-  {
-    slug: "mills-specter-2", brand: "MILLS", model: "Specter 2.0", category: "daily", terrain: "road", msrpIdr: 349000,
-    currentPrice: { priceIdr: 349000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null, sourceStatus: "verified", sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear",
-    description: "Accessible Indonesian entry-level running shoe.", community: demoCommunity, reviewCount: 0, overallRating: 0, buyAgainPct: 0, useCases: ["Daily", "Walking"], accent: "from-neutral-300 to-stone-100", isLocalIndonesia: true
-  },
-  ...[
-    ["910 Nineten", "Haze", "daily"], ["910 Nineten", "Geist Ekiden", "race"], ["Ortuseight", "Hyperglide", "daily"], ["Ortuseight", "Solar", "race"],
-    ["Specs", "Hyperspeed", "speed"], ["Puma", "Deviate Nitro", "tempo"], ["New Balance", "Fresh Foam X 1080", "max-cushion"], ["Saucony", "Endorphin Speed", "tempo"],
-    ["Brooks", "Ghost", "daily"], ["On", "Cloudmonster", "max-cushion"], ["Mizuno", "Wave Rider", "daily"], ["Skechers", "GO RUN", "daily"]
-  ].map(([brand, model, category], i) => ({
-    slug: `${brand}-${model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""), brand, model, category: category as DemoShoe["category"], terrain: "road" as const,
-    msrpIdr: null, currentPrice: null, weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null,
-    sourceStatus: "catalog-only" as const, sourceLabel: "Catalog entry", sourceUrl: null, description: "Catalog entry ready for verified specifications, price sources and runner reviews.",
-    community: demoCommunity, reviewCount: 0, overallRating: 0, buyAgainPct: 0, useCases: [category === "race" ? "Race" : "Daily"], accent: ["from-emerald-300 to-lime-100", "from-indigo-300 to-sky-100", "from-fuchsia-300 to-pink-100"][i % 3],
-    isLocalIndonesia: ["910 Nineten", "Ortuseight", "Specs"].includes(brand)
-  }))
+const prices: Record<string, PriceSnapshot> = {
+  "adidas-adizero-evo-sl": { priceIdr: 2500000, sourceLabel: "adidas Indonesia", sourceUrl: "https://www.adidas.co.id/id/sepatu-adizero-lari", sourceType: "official-brand", observedAt },
+  "adidas-adizero-boston-13": { priceIdr: 2500000, sourceLabel: "adidas Indonesia", sourceUrl: "https://www.adidas.co.id/id/sepatu-adizero-lari", sourceType: "official-brand", observedAt },
+  "nike-pegasus-42": { priceIdr: 2199000, sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/w/best-running-shoes-2eqihz37v7jz76m50zy7ok", sourceType: "official-brand", observedAt },
+  "nike-vomero-18": { priceIdr: 2249000, sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/w/best-road-running-shoes-37v7jz76m50z8kwewzy7ok", sourceType: "official-brand", observedAt },
+  "new-balance-rebel-v5": { priceIdr: 2499000, sourceLabel: "New Balance Indonesia", sourceUrl: "https://www.newbalance.co.id/rebel-v5.html", sourceType: "official-brand", observedAt },
+  "new-balance-1080-v14": { priceIdr: 2999000, sourceLabel: "New Balance Indonesia", sourceUrl: "https://www.newbalance.co.id/catalog/category/view/id/1063/", sourceType: "official-brand", observedAt },
+  "puma-velocity-nitro-5": { priceIdr: 2099000, sourceLabel: "PUMA Indonesia", sourceUrl: "https://id.puma.com/en/men/sports/running", sourceType: "official-brand", observedAt },
+  "puma-deviate-nitro-4": { priceIdr: 2699000, sourceLabel: "PUMA Indonesia", sourceUrl: "https://id.puma.com/en/sport/running/deviate-nitro%E2%84%A2", sourceType: "official-brand", observedAt },
+  "on-cloudmonster-3": { priceIdr: 3200000, sourceLabel: "On Indonesia", sourceUrl: "https://www.on.com/en-id/shop/shoes/road-running", sourceType: "official-brand", observedAt },
+  "on-cloudsurfer-2": { priceIdr: 2700000, sourceLabel: "On Indonesia", sourceUrl: "https://www.on.com/en-id/shop/shoes/running", sourceType: "official-brand", observedAt },
+  "910-haze-tempo-2": { priceIdr: 799900, sourceLabel: "910 Indonesia", sourceUrl: "https://910.id/", sourceType: "official-brand", observedAt },
+  "ortuseight-hypersonic-2": { priceIdr: 1599000, sourceLabel: "Ortuseight official-market signal", sourceUrl: "https://shopee.co.id/list/Ortuseight/Official%20Store?page=1", sourceType: "official-marketplace", observedAt },
+  "ortuseight-hyperglide-3-1": { priceIdr: 749000, sourceLabel: "Ortuseight official-market signal", sourceUrl: "https://shopee.co.id/list/Ortuseight/Official%20Store?page=1", sourceType: "official-marketplace", observedAt },
+  "mills-enerpro-zenith": { priceIdr: 899000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
+  "mills-enermax-dynaplate": { priceIdr: 549000, sourceLabel: "MILLS Official", sourceUrl: "https://mills.co.id/collections/running-footwear", sourceType: "official-brand", observedAt },
+  "specs-novaspeed-subsx": { priceIdr: 899800, sourceLabel: "Blibli Indonesia", sourceUrl: "https://www.blibli.com/jual/running-shoes-indonesia", sourceType: "retailer", observedAt },
+  "specs-airglide": { priceIdr: 399800, sourceLabel: "Blibli Indonesia", sourceUrl: "https://www.blibli.com/jual/running-shoes-indonesia", sourceType: "retailer", observedAt },
+};
+
+const catalog: Array<[string, string, string, ShoeCategory, boolean?]> = [
+  ["adidas-adizero-evo-sl", "adidas", "Adizero EVO SL", "tempo"],
+  ["adidas-adizero-boston-13", "adidas", "Adizero Boston 13", "tempo"],
+  ["nike-pegasus-42", "Nike", "Pegasus 42", "daily"],
+  ["nike-vomero-18", "Nike", "Vomero 18", "max-cushion"],
+  ["asics-superblast-3", "ASICS", "Superblast 3", "tempo"],
+  ["asics-novablast-6", "ASICS", "Novablast 6", "daily"],
+  ["hoka-clifton-10", "HOKA", "Clifton 10", "daily"],
+  ["hoka-bondi-9", "HOKA", "Bondi 9", "max-cushion"],
+  ["new-balance-rebel-v5", "New Balance", "FuelCell Rebel v5", "tempo"],
+  ["new-balance-1080-v14", "New Balance", "Fresh Foam X 1080 v14", "max-cushion"],
+  ["puma-velocity-nitro-5", "Puma", "Velocity NITRO 5", "daily"],
+  ["puma-deviate-nitro-4", "Puma", "Deviate NITRO 4", "tempo"],
+  ["saucony-ride-19", "Saucony", "Ride 19", "daily"],
+  ["saucony-endorphin-speed-5", "Saucony", "Endorphin Speed 5", "tempo"],
+  ["brooks-ghost-18", "Brooks", "Ghost 18", "daily"],
+  ["brooks-adrenaline-gts-25", "Brooks", "Adrenaline GTS 25", "daily"],
+  ["on-cloudmonster-3", "On", "Cloudmonster 3", "max-cushion"],
+  ["on-cloudsurfer-2", "On", "Cloudsurfer 2", "daily"],
+  ["mizuno-wave-rider-29", "Mizuno", "Wave Rider 29", "daily"],
+  ["mizuno-hyperwarp-elite", "Mizuno", "Hyperwarp Elite", "race"],
+  ["skechers-aero-razor", "Skechers", "AERO Razor", "tempo"],
+  ["skechers-aero-burst", "Skechers", "AERO Burst", "max-cushion"],
+  ["910-haze-tempo-2", "910 Nineten", "Haze Tempo 2.0", "tempo", true],
+  ["910-geist-ekiden-hyperpulse", "910 Nineten", "Geist Ekiden Hyperpulse", "race", true],
+  ["ortuseight-hypersonic-2", "Ortuseight", "Hypersonic 2.0", "race", true],
+  ["ortuseight-hyperglide-3-1", "Ortuseight", "Hyperglide 3.1", "daily", true],
+  ["mills-enerpro-zenith", "MILLS", "Enerpro Zenith", "tempo", true],
+  ["mills-enermax-dynaplate", "MILLS", "Enermax Dynaplate", "daily", true],
+  ["specs-novaspeed-subsx", "Specs", "Novaspeed SUBSX", "tempo", true],
+  ["specs-airglide", "Specs", "Airglide", "daily", true],
 ];
+
+const accents = [
+  "from-lime-300 to-yellow-100", "from-sky-300 to-cyan-100", "from-orange-300 to-amber-100", "from-violet-300 to-fuchsia-100",
+  "from-emerald-300 to-lime-100", "from-indigo-300 to-sky-100", "from-fuchsia-300 to-pink-100", "from-rose-300 to-orange-100"
+];
+
+export const demoShoes: DemoShoe[] = catalog.map(([slug, brand, model, category, local], index) => {
+  const currentPrice = prices[slug] ?? null;
+  return {
+    slug, brand, model, category, terrain: "road",
+    msrpIdr: currentPrice?.priceIdr ?? null,
+    currentPrice,
+    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null,
+    sourceStatus: currentPrice ? "verified" : "catalog-only",
+    sourceLabel: currentPrice?.sourceLabel ?? "Catalog entry",
+    sourceUrl: currentPrice?.sourceUrl ?? null,
+    description: `${model} is included in Runned's curated popular-shoe catalog. Specifications and community data are added only when verified.`,
+    community: demoCommunity,
+    reviewCount: 0,
+    overallRating: 0,
+    buyAgainPct: 0,
+    useCases: category === "race" ? ["Race"] : category === "tempo" ? ["Tempo", "Daily"] : category === "max-cushion" ? ["Easy", "Long run"] : ["Daily", "Easy"],
+    accent: accents[index % accents.length],
+    isLocalIndonesia: Boolean(local),
+  };
+});
 
 export const brandDirectory: BrandDirectoryEntry[] = [
   ["adidas", "adidas"], ["nike", "Nike"], ["asics", "ASICS"], ["hoka", "HOKA"], ["new-balance", "New Balance"], ["puma", "Puma"], ["saucony", "Saucony"], ["brooks", "Brooks"], ["on", "On"], ["mizuno", "Mizuno"], ["skechers", "Skechers"],
