@@ -1,6 +1,7 @@
-export type ShoeCategory = "daily" | "tempo" | "race" | "max-cushion" | "trail";
+export type ShoeCategory = "daily" | "tempo" | "race" | "max-cushion" | "trail" | "stability" | "speed";
 export type Terrain = "road" | "trail" | "mixed";
 export type SpecStatus = "verified" | "catalog-only";
+export type PriceSourceType = "official-brand" | "official-marketplace" | "retailer";
 
 export type CommunityPerception = {
   softness: number;
@@ -15,6 +16,16 @@ export type CommunityPerception = {
   value: number;
 };
 
+export type PriceSnapshot = {
+  priceIdr: number;
+  listPriceIdr?: number | null;
+  sourceLabel: string;
+  sourceUrl: string;
+  sourceType: PriceSourceType;
+  observedAt: string;
+  inStock?: boolean | null;
+};
+
 export type DemoShoe = {
   slug: string;
   brand: string;
@@ -22,6 +33,7 @@ export type DemoShoe = {
   category: ShoeCategory;
   terrain: Terrain;
   msrpIdr: number | null;
+  currentPrice?: PriceSnapshot | null;
   weightG: number | null;
   dropMm: number | null;
   heelStackMm: number | null;
@@ -38,4 +50,12 @@ export type DemoShoe = {
   buyAgainPct: number;
   useCases: string[];
   accent: string;
+  isLocalIndonesia?: boolean;
+};
+
+export type BrandDirectoryEntry = {
+  slug: string;
+  name: string;
+  countryCode?: string;
+  isLocalIndonesia?: boolean;
 };
