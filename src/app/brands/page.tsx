@@ -1,0 +1,6 @@
+import { demoShoes, localBrands } from "@/lib/data/demo-shoes";
+
+export default function BrandsPage() {
+  const global = [...new Set(demoShoes.map((shoe) => shoe.brand))];
+  return <div className="mx-auto max-w-5xl px-5 py-16 lg:px-8"><p className="text-xs font-bold uppercase tracking-[.18em] text-black/40">Catalog principle</p><h1 className="mt-2 text-5xl font-black tracking-[-.05em]">Local and global. Same database.</h1><p className="mt-5 max-w-2xl leading-7 text-black/55">Runned is Indonesia-first. Local running brands should be comparable using the same schema, review dimensions, and source standards as international brands.</p><div className="mt-12 grid gap-6 md:grid-cols-2"><div className="rounded-[28px] bg-black p-7 text-white"><p className="text-sm font-bold text-white/45">Indonesia-first catalog</p><div className="mt-5 flex flex-wrap gap-2">{localBrands.map((brand) => <span key={brand} className="rounded-full bg-white px-4 py-2 text-sm font-bold text-black">{brand}</span>)}</div></div><div className="rounded-[28px] border border-black/10 bg-white p-7"><p className="text-sm font-bold text-black/45">Global seed catalog</p><div className="mt-5 flex flex-wrap gap-2">{global.map((brand) => <span key={brand} className="rounded-full bg-black/5 px-4 py-2 text-sm font-bold">{brand}</span>)}</div></div></div></div>;
+}
