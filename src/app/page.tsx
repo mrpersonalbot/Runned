@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CatalogBrowser } from "@/components/catalog-browser";
-import { brandDirectory, demoShoes } from "@/lib/data/demo-shoes";
+import { brandDirectory, demoShoes } from "@/lib/data/catalog";
 
 export default function Home() {
   const pricedCount = demoShoes.filter((shoe) => shoe.msrpIdr != null).length;
