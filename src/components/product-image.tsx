@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type ProductImageProps = {
   src: string;
@@ -9,7 +9,15 @@ type ProductImageProps = {
 };
 
 export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
+  const [fallbackToSource, setFallbackToSource] = useState(false);
   const [failed, setFailed] = useState(false);
+
+  const normalizedSrc = useMemo(() => {
+    if (!/^https?:\/\//i.test(src)) return src;
+    return `/api/product-image?url=${encodeURIComponent(src)}`;
+  }, [src]);
+
+  const displaySrc = fallbackToSource ? src : normalizedSrc;
 
   if (failed) {
     return (
@@ -22,13 +30,21 @@ export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
       <img
-        src={src}
+        src={displaySrc}
         alt={alt}
-        className={`object-contain mix-blend-multiply ${className}`}
-        style={{ width: "84%", height: "68%", objectFit: "contain", mixBlendMode: "multiply" }}
+        className={`object-contain ${fallbackToSource ? "mix-blend-multiply" : ""} ${className}`}
+        style={fallbackToSource
+          ? { width: "84%", height: "68%", objectFit: "contain", mixBlendMode: "multiply" }
+          : { width: "100%", height: "100%", objectFit: "contain" }}
         loading="lazy"
         referrerPolicy="no-referrer"
-        onError={() => setFailed(true)}
+        onError={() => {
+          if (!fallbackToSource && normalizedSrc !== src) {
+            setFallbackToSource(true);
+            return;
+          }
+          setFailed(true);
+        }}
       />
     </div>
   );
