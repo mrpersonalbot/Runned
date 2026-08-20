@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { demoShoes, getDemoShoe } from "@/lib/data/demo-shoes";
+import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
 import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export default async function ComparePage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
