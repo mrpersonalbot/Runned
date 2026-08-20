@@ -24,6 +24,58 @@ const prices: Record<string, PriceSnapshot> = {
   "specs-airglide": { priceIdr: 399800, sourceLabel: "Blibli Indonesia", sourceUrl: "https://www.blibli.com/jual/running-shoes-indonesia", sourceType: "retailer", observedAt },
 };
 
+const retailPrices: Record<string, number> = {
+  "adidas-adizero-evo-sl": 2500000, "adidas-adizero-boston-13": 2500000,
+  "nike-pegasus-42": 2199000, "nike-vomero-18": 2249000,
+  "asics-superblast-3": 3399000, "asics-novablast-6": 2499000,
+  "hoka-clifton-10": 2799000, "hoka-bondi-9": 3299000,
+  "new-balance-rebel-v5": 2499000, "new-balance-1080-v14": 2799000,
+  "puma-velocity-nitro-5": 2099000, "puma-deviate-nitro-4": 2699000,
+  "saucony-ride-19": 2199000, "saucony-endorphin-speed-5": 2899000,
+  "brooks-ghost-18": 2599000, "brooks-adrenaline-gts-25": 2799000,
+  "on-cloudmonster-3": 3200000, "on-cloudsurfer-2": 2700000,
+  "mizuno-wave-rider-29": 2499000, "mizuno-hyperwarp-elite": 3699000,
+  "skechers-aero-razor": 2199000, "skechers-aero-burst": 2699000,
+  "910-haze-tempo-2": 799900, "910-geist-ekiden-hyperpulse": 679900,
+  "ortuseight-hypersonic-2": 1599000, "ortuseight-hyperglide-3-1": 749000,
+  "mills-enerpro-zenith": 899000, "mills-enermax-dynaplate": 549000,
+  "specs-novaspeed-subsx": 899800, "specs-airglide": 399800,
+};
+
+type ProductSpecs = Pick<DemoShoe, "weightG" | "dropMm" | "heelStackMm" | "forefootStackMm" | "midsole" | "plate">;
+const productSpecs: Record<string, ProductSpecs> = {
+  "adidas-adizero-evo-sl": { weightG: 224, dropMm: 7, heelStackMm: 39, forefootStackMm: 32, midsole: "Lightstrike Pro", plate: "None" },
+  "adidas-adizero-boston-13": { weightG: 255, dropMm: 6, heelStackMm: 36, forefootStackMm: 30, midsole: "Lightstrike Pro + Lightstrike 2.0", plate: "EnergyRods 2.0 (glass fibre)" },
+  "nike-pegasus-42": { weightG: 306, dropMm: 10, heelStackMm: 37, forefootStackMm: 27, midsole: "ReactX + full-length Air Zoom", plate: "None" },
+  "nike-vomero-18": { weightG: 325, dropMm: 10, heelStackMm: 46, forefootStackMm: 36, midsole: "ZoomX + ReactX", plate: "None" },
+  "asics-superblast-3": { weightG: 239, dropMm: 8, heelStackMm: 46.5, forefootStackMm: 38.5, midsole: "FF LEAP + FF BLAST PLUS", plate: "None" },
+  "asics-novablast-6": { weightG: 261, dropMm: 8, heelStackMm: 41.5, forefootStackMm: 33.5, midsole: "FF BLAST MAX + FF Turbo Squared", plate: "None" },
+  "hoka-clifton-10": { weightG: 278, dropMm: 8, heelStackMm: 42, forefootStackMm: 34, midsole: "CMEVA foam", plate: "None" },
+  "hoka-bondi-9": { weightG: 298, dropMm: 5, heelStackMm: 43, forefootStackMm: 38, midsole: "Supercritical EVA foam", plate: "None" },
+  "new-balance-rebel-v5": { weightG: 225, dropMm: 6, heelStackMm: 35, forefootStackMm: 29, midsole: "FuelCell (PEBA/EVA blend)", plate: "None" },
+  "new-balance-1080-v14": { weightG: 298, dropMm: 6, heelStackMm: 38, forefootStackMm: 32, midsole: "Fresh Foam X", plate: "None" },
+  "puma-velocity-nitro-5": { weightG: 230, dropMm: 8, heelStackMm: 35, forefootStackMm: 27, midsole: "NITROFOAM", plate: "None" },
+  "puma-deviate-nitro-4": { weightG: 250, dropMm: 10, heelStackMm: 39, forefootStackMm: 29, midsole: "NITROFOAM", plate: "Carbon PWRPLATE" },
+  "saucony-ride-19": { weightG: 255, dropMm: 8, heelStackMm: 36, forefootStackMm: 28, midsole: "PWRRUN+", plate: "None" },
+  "saucony-endorphin-speed-5": { weightG: 237, dropMm: 8, heelStackMm: 36, forefootStackMm: 28, midsole: "PWRRUN PB", plate: "Winged nylon plate" },
+  "brooks-ghost-18": { weightG: 289, dropMm: 10, heelStackMm: 36, forefootStackMm: 26, midsole: "DNA LOFT v3", plate: "None" },
+  "brooks-adrenaline-gts-25": { weightG: 276, dropMm: 10, heelStackMm: 36.5, forefootStackMm: 28.5, midsole: "DNA LOFT v3", plate: "GuideRails support system" },
+  "on-cloudmonster-3": { weightG: 295, dropMm: 6, heelStackMm: 35, forefootStackMm: 29, midsole: "Helion foam + CloudTec", plate: "Speedboard" },
+  "on-cloudsurfer-2": { weightG: 261, dropMm: 9, heelStackMm: 32, forefootStackMm: 23, midsole: "Helion foam + CloudTec Phase", plate: "None" },
+  "mizuno-wave-rider-29": { weightG: 280, dropMm: 10, heelStackMm: null, forefootStackMm: null, midsole: "MIZUNO ENERZY NXT", plate: "MIZUNO WAVE plate" },
+  "mizuno-hyperwarp-elite": { weightG: 220, dropMm: 3.5, heelStackMm: 38, forefootStackMm: 34.5, midsole: "MIZUNO ENERZY XP", plate: "Carbon-infused Wave plate" },
+  "skechers-aero-razor": { weightG: 201, dropMm: 4, heelStackMm: 36, forefootStackMm: 32, midsole: "Hyper Burst Pro", plate: "H-Wing forefoot plate" },
+  "skechers-aero-burst": { weightG: 284, dropMm: 6, heelStackMm: 42, forefootStackMm: 36, midsole: "Hyper Burst Pro + Hyper Burst Ice", plate: "H-Plate" },
+  "910-haze-tempo-2": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Hyperpulse foam", plate: "None" },
+  "910-geist-ekiden-hyperpulse": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Hyperpulse foam", plate: "Not published" },
+  "ortuseight-hypersonic-2": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Altostratus foam", plate: "KineticBlade" },
+  "ortuseight-hyperglide-3-1": { weightG: 240, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Cumulus Foam", plate: "None" },
+  "mills-enerpro-zenith": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Dual-density MILLS PBX + OP Foam", plate: "None" },
+  "mills-enermax-dynaplate": { weightG: 230, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Foam midsole", plate: "TPU plate" },
+  "specs-novaspeed-subsx": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "Substance X", plate: "None" },
+  "specs-airglide": { weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: "EVA cushioning", plate: "None" },
+};
+
 const catalog: Array<[string, string, string, ShoeCategory, boolean?]> = [
   ["adidas-adizero-evo-sl", "adidas", "Adizero EVO SL", "tempo"],
   ["adidas-adizero-boston-13", "adidas", "Adizero Boston 13", "tempo"],
@@ -64,15 +116,16 @@ const accents = [
 
 export const demoShoes: DemoShoe[] = catalog.map(([slug, brand, model, category, local], index) => {
   const currentPrice = prices[slug] ?? null;
+  const specs = productSpecs[slug];
   return {
     slug, brand, model, category, terrain: "road",
-    msrpIdr: currentPrice?.priceIdr ?? null,
+    msrpIdr: retailPrices[slug],
     currentPrice,
-    weightG: null, dropMm: null, heelStackMm: null, forefootStackMm: null, midsole: null, plate: null,
+    ...specs,
     sourceStatus: currentPrice ? "verified" : "catalog-only",
     sourceLabel: currentPrice?.sourceLabel ?? "Catalog entry",
     sourceUrl: currentPrice?.sourceUrl ?? null,
-    description: `${model} is included in Runned's curated popular-shoe catalog. Specifications and community data are added only when verified.`,
+    description: `${model} is included in Runned's curated popular-shoe catalog. Specifications and retail price are listed for straightforward comparison.`,
     community: demoCommunity,
     reviewCount: 0,
     overallRating: 0,
