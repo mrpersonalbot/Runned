@@ -30,9 +30,9 @@ export const shoeImages: Record<string, ShoeImageView[]> = {
     { label: "Outsole", url: "https://static.ftshp.digital/img/p/1/8/2/1/5/2/6/1821526-thickbox.jpg" },
   ],
   "asics-novablast-6": [
-    { label: "Side", url: "https://www.running-point.nl/cdn/shop/files/P000000860020300_1.jpg?v=1783056106&width=1946" },
-    { label: "Top", url: "https://lecoureur.com/cdn/shop/files/ASICS-NOVABLAST-5-HOMME-1011B974-101-3_5000x.webp?v=1768233626" },
-    { label: "Outsole", url: "https://static.ftshp.digital/img/p/1/8/5/8/6/3/0/1858630-thickbox.jpg" },
+    { label: "Side", url: "https://images.asics.com/is/image/asics/1011C243_400_SR_RT_GLB?fmt=webp&wid=1200" },
+    { label: "Top", url: "https://images.asics.com/is/image/asics/1011C243_400_SB_TP_GLB?fmt=webp&wid=1200" },
+    { label: "Outsole", url: "https://images.asics.com/is/image/asics/1011C243_400_SB_BT_GLB?fmt=webp&wid=1200" },
   ],
   "hoka-clifton-10": [
     { label: "Side", url: "https://hoka.mx/cdn/shop/files/1162031-WWH_1_2400x.png?v=1750277221" },
@@ -50,7 +50,7 @@ export const shoeImages: Record<string, ShoeImageView[]> = {
     { label: "Outsole", url: "https://runhavoc.com.au/cdn/shop/files/WFCXL5A_6.webp?v=1754545629&width=1000" },
   ],
   "new-balance-1080-v14": [
-    { label: "Side", url: "https://irunsg.com/cdn/shop/files/main-1110x740.psd-2024-10-09T152848.230_2048x2048.png?v=1728459038" },
+    { label: "Side", url: "https://nb.scene7.com/is/image/NB/m1080b14_nb_02_i?fmt=webp&wid=1200" },
     { label: "Top", url: "https://cdn.shoplightspeed.com/shops/627485/files/66412470/image.jpg" },
     { label: "Outsole", url: "https://lukeslocker.com/cdn/shop/files/LukesLockerDallasFortWorth_NEWBALANCE_W1080W14_Women_sFreshFoamX1080v14_White_Light_Gold_5.png?v=1728505134&width=1080" },
   ],
@@ -95,7 +95,7 @@ export const shoeImages: Record<string, ShoeImageView[]> = {
     { label: "Outsole", url: "https://images.tcdn.com.br/img/img_prod/1409077/tnis_on_running_cloudsurfer_2_feminino_branco_6_20251024145524_f9788621abc9.jpg" },
   ],
   "mizuno-wave-rider-29": [
-    { label: "Side", url: "https://www.rundome.gr/3214986-product_large/mizuno-wave-rider-29-shoes.jpg" },
+    { label: "Side", url: "https://emea.mizuno.com/dw/image/v2/BDBS_PRD/on/demandware.static/-/Sites-masterCatalog_Mizuno/default/dwefcb2e77/AW25/Footwear/SH_J1GC250504_03.png-1000x1000-s_i-c_t_White-f_png.png?sh=900&sw=900" },
     { label: "Top", url: "https://emea.mizuno.com/dw/image/v2/BDBS_PRD/on/demandware.static/-/Sites-masterCatalog_Mizuno/default/dw87de48c1/AW25/Footwear/SH_J1GC250504_04.png-1000x1000-s_i-c_t_White-f_png.png?sh=950&sw=950" },
     { label: "Outsole", url: "https://www.theathletesfoot.com.au/media/catalog/product/s/h/sh_j1gd250304_02.jpg?auto=webp&fit=cover&format=pjpg&height=722.5806451612904&width=640" },
   ],
