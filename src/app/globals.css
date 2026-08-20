@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f5ef;
-  --foreground: #151515;
+  --background: #f4f1eb;
+  --foreground: #171716;
+  --line: rgba(23, 23, 22, 0.12);
 }
 
 * { box-sizing: border-box; }
@@ -13,4 +14,16 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-::selection { background: #151515; color: #fff; }
+.font-display {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+.eyebrow {
+  color: rgba(23, 23, 22, 0.48);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+::selection { background: #171716; color: #fff; }
