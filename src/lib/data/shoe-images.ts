@@ -135,14 +135,14 @@ export const shoeImages: Record<string, ShoeImageView[]> = {
     { label: "Outsole", url: "https://cdn.store-assets.com/s/1267934/i/98061957.jpeg" },
   ],
   "mills-enerpro-zenith": [
-    { label: "Side", url: "https://spoton-images.imgix.net/cms-image/BQjbWrB8xD7dXZkQLsQ7D41eut9nzu1TRp3d90Iq.png" },
-    { label: "Top", url: "https://media.power-cdn.net/images/h-c26091b9bd03a9dfaf07a983189c3afa/products/2349105/2349105_1_600x600_w_g.webp" },
-    { label: "Outsole", url: "https://mills.co.id/cdn/shop/files/mills-sepatu-lari-running-shoes-enerpro-zenith-ltjadepinegreenoffwhite-9104402-enerpro_zenith-09.png?v=1756355308&width=1445" },
+    { label: "Side", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/5688-enerpro_zenith.png?v=1759217778" },
+    { label: "Top", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/5688-enerpro_zenith-01.png?v=1759217779" },
+    { label: "Outsole", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/5688-enerpro_zenith-03.png?v=1759217778" },
   ],
   "mills-enermax-dynaplate": [
-    { label: "Side", url: "https://c1.neweggimages.com/productimage/nb640/17-114-307-03.jpg" },
-    { label: "Top", url: "https://c1.neweggimages.com/productimage/nb640/BFNMS2212150BMJUNC2.jpg" },
-    { label: "Outsole", url: "https://sportaways.com/storage/products/5844/sepatu-running-mills-enermax-dynaplate-royalblueorangewhite-r20p-2.webp" },
+    { label: "Side", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/enermax_dynaplate_-_black_dk.grey_-_9100702.png?v=1746505161" },
+    { label: "Top", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/enermax_dynaplate_-_black_dk.grey_-_9100702-1.png?v=1746505161" },
+    { label: "Outsole", url: "https://cdn.shopify.com/s/files/1/0852/5457/0263/files/enermax_dynaplate_-_black_dk.grey_-_9100702-3.png?v=1746505161" },
   ],
   "specs-novaspeed-subsx": [
     { label: "Side", url: "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full/catalog-image/MTA-184612162/specs_specs_sepatu_running_novaspeed_subsx_white-black-dazzling_blue_spe1040161_full01_jtmsh7vj.webp" },
