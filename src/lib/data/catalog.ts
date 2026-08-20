@@ -2,6 +2,13 @@ import type { DemoShoe } from "@/lib/types";
 import { brandDirectory, demoShoes as baseShoes, localBrands } from "@/lib/data/demo-shoes";
 import { extraCatalog, extraPrices, extraProductSpecs, extraRetailPrices, extraShoeImages } from "@/lib/data/catalog-additions";
 import { moreCatalog, morePrices, moreProductSpecs, moreRetailPrices, moreShoeImages } from "@/lib/data/catalog-additions-2";
+import {
+  localExpansionCatalog,
+  localExpansionPrices,
+  localExpansionProductSpecs,
+  localExpansionRetailPrices,
+  localExpansionShoeImages,
+} from "@/lib/data/catalog-additions-3";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -70,6 +77,34 @@ const moreShoes: DemoShoe[] = moreCatalog.map(([slug, brand, model, category, te
   };
 });
 
-export const demoShoes: DemoShoe[] = [...baseShoes, ...extras, ...moreShoes];
+const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand, model, category, terrain, local], index) => {
+  const currentPrice = localExpansionPrices[slug] ?? null;
+  const specs = localExpansionProductSpecs[slug];
+  const price = localExpansionRetailPrices[slug] ?? null;
+  return {
+    slug,
+    brand,
+    model,
+    category,
+    terrain,
+    msrpIdr: price,
+    currentPrice,
+    ...specs,
+    sourceStatus: currentPrice ? "verified" : "catalog-only",
+    sourceLabel: currentPrice?.sourceLabel ?? "Catalog entry",
+    sourceUrl: currentPrice?.sourceUrl ?? null,
+    description: `${model} is part of Runned's Indonesia-focused catalog expansion, with current local pricing and only source-backed specifications.`,
+    community: demoCommunity,
+    reviewCount: 0,
+    overallRating: 0,
+    buyAgainPct: 0,
+    useCases: useCasesFor(category, terrain),
+    accent: ["from-stone-200 to-stone-100", "from-zinc-200 to-zinc-100"][index % 2],
+    images: localExpansionShoeImages[slug] ?? [],
+    isLocalIndonesia: Boolean(local),
+  };
+});
+
+export const demoShoes: DemoShoe[] = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes];
 export { brandDirectory, localBrands };
 export function getDemoShoe(slug: string) { return demoShoes.find((shoe) => shoe.slug === slug); }
