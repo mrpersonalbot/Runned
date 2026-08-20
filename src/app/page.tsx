@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CatalogBrowser } from "@/components/catalog-browser";
-import { brandDirectory, demoShoes, localBrands } from "@/lib/data/demo-shoes";
+import { brandDirectory, demoShoes } from "@/lib/data/demo-shoes";
 
 export default function Home() {
   const pricedCount = demoShoes.filter((shoe) => shoe.currentPrice).length;
@@ -16,7 +16,7 @@ export default function Home() {
         </div>
         <div className="max-w-md lg:pb-2">
           <p className="text-lg leading-8 text-black/65">
-            Runned is a practical, Indonesia-first catalog of running shoes. Browse the models people actually run in, compare what is known, and see prices with a source and a date.
+            Runned is a practical catalog of running shoes. Browse the models people actually run in, compare what is known, and see prices with a source and a date.
           </p>
           <Link href="#shoes" className="mt-7 inline-flex border-b border-black pb-1 text-sm font-semibold">
             Browse the catalog <span className="ml-2">↓</span>
@@ -25,11 +25,10 @@ export default function Home() {
       </section>
 
       <section className="border-y border-black/10">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-black/10 px-5 sm:grid-cols-4 lg:px-8">
+        <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-black/10 px-5 lg:px-8">
           <div className="py-6 pr-5"><p className="font-display text-3xl">{demoShoes.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">models listed</p></div>
-          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{brandDirectory.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">brand families</p></div>
-          <div className="border-t border-black/10 py-6 pr-5 sm:border-t-0 sm:pl-6 sm:pr-0"><p className="font-display text-3xl">{pricedCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">price checks</p></div>
-          <div className="border-t border-black/10 py-6 pl-5 sm:border-t-0 sm:pl-6"><p className="font-display text-3xl">ID</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">local brands included</p></div>
+          <div className="px-5 py-6 sm:px-6"><p className="font-display text-3xl">{brandDirectory.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">brand families</p></div>
+          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{pricedCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">price checks</p></div>
         </div>
       </section>
 
@@ -49,7 +48,7 @@ export default function Home() {
           <div><p className="eyebrow">A note on the data</p><h2 className="mt-3 max-w-sm font-display text-4xl leading-tight tracking-[-0.04em]">Useful beats impressive.</h2></div>
           <div className="max-w-2xl text-base leading-8 text-black/65">
             <p>Runned separates the shoe itself from the things that change around it: price, availability, and what runners think. That makes it easier to add new brands without turning every product page into a sales pitch.</p>
-            <p className="mt-5">Indonesian brands are part of the main index, not a side category: {localBrands.join(", ")}.</p>
+            <p className="mt-5">Every model belongs to the same index and is compared on the same terms.</p>
           </div>
         </div>
       </section>
