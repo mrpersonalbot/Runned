@@ -4,7 +4,7 @@ import { formatIDR } from "@/lib/shoes/scoring.mjs";
 import { ProductImage } from "@/components/product-image";
 
 export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
-  const price = shoe.currentPrice?.priceIdr ?? shoe.msrpIdr;
+  const price = shoe.msrpIdr ?? shoe.currentPrice?.priceIdr ?? null;
   const image = shoe.images.find((item) => item.label === "Side") ?? shoe.images[0];
 
   return (
