@@ -13,20 +13,23 @@ export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
 
   if (failed) {
     return (
-      <div role="img" aria-label={alt} className={`grid place-items-center bg-[#efefec] text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-black/35 ${className}`}>
+      <div role="img" aria-label={alt} className="grid h-full w-full place-items-center bg-white text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-black/35">
         Photo unavailable
       </div>
     );
   }
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      loading="lazy"
-      referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
-    />
+    <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
+      <img
+        src={src}
+        alt={alt}
+        className={`object-contain mix-blend-multiply ${className}`}
+        style={{ width: "84%", height: "68%", objectFit: "contain", mixBlendMode: "multiply" }}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
+    </div>
   );
 }
