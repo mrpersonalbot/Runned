@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PerceptionBars } from "@/components/perception-bars";
+import { ProductImage } from "@/components/product-image";
 import { demoShoes, getDemoShoe } from "@/lib/data/demo-shoes";
 import { confidenceScore, formatIDR } from "@/lib/shoes/scoring.mjs";
 
@@ -12,9 +13,9 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
   if (!shoe) notFound();
 
   const specs = [
-    ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Pending"],
-    ["Drop", shoe.dropMm != null ? `${shoe.dropMm} mm` : "Pending"],
-    ["Stack", shoe.heelStackMm != null && shoe.forefootStackMm != null ? `${shoe.heelStackMm} / ${shoe.forefootStackMm} mm` : "Pending"],
+    ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Not published"],
+    ["Drop", shoe.dropMm != null ? `${shoe.dropMm} mm` : "Not published"],
+    ["Stack", shoe.heelStackMm != null && shoe.forefootStackMm != null ? `${shoe.heelStackMm} / ${shoe.forefootStackMm} mm` : "Not published"],
     ["Midsole", shoe.midsole ?? "Pending"],
     ["Plate", shoe.plate ?? "Pending"],
     ["Terrain", shoe.terrain],
@@ -39,13 +40,12 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
           {shoe.images.map((image) => (
             <figure key={image.label} className="bg-[#f8f8f6]">
               <div className="aspect-square p-6 sm:p-8">
-                <img src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} className="h-full w-full object-contain mix-blend-multiply" />
+                <ProductImage src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} className="h-full w-full object-contain mix-blend-multiply" />
               </div>
               <figcaption className="border-t border-black/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/50">{image.label} view</figcaption>
             </figure>
           ))}
         </div>
-        <p className="mt-3 text-xs leading-5 text-black/45">Product images are sourced from manufacturer and retailer catalog photography. Colorways can vary by source.</p>
       </section>
 
       <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.8fr_1.2fr]">
@@ -57,9 +57,9 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
             <p className="mt-4 text-xs text-black/40">Confidence prototype: {confidenceScore(shoe.reviewCount)}/100</p>
           </div>
           <div className="border border-black/10 bg-white p-6">
-            <div className="flex items-center justify-between"><h2 className="font-display text-2xl">Manufacturer specs</h2><span className="text-[11px] font-bold uppercase tracking-[.12em] text-black/45">{shoe.sourceStatus}</span></div>
+            <div className="flex items-center justify-between"><h2 className="font-display text-2xl">Product specifications</h2></div>
             <dl className="mt-5 divide-y divide-black/10">{specs.map(([label, value]) => <div key={label} className="flex justify-between gap-4 py-3 text-sm"><dt className="text-black/45">{label}</dt><dd className="text-right font-semibold">{value}</dd></div>)}</dl>
-            <div className="mt-5 border-t border-black/10 pt-4"><p className="text-xs text-black/40">Current price</p><p className="mt-1 text-lg font-bold">{formatIDR(shoe.msrpIdr)}</p>{shoe.sourceUrl && <a className="mt-2 inline-block text-xs font-semibold underline underline-offset-4" href={shoe.sourceUrl} target="_blank" rel="noreferrer">Source: {shoe.sourceLabel}</a>}</div>
+            <div className="mt-5 border-t border-black/10 pt-4"><p className="text-xs text-black/40">Retail price</p><p className="mt-1 text-lg font-bold">{formatIDR(shoe.msrpIdr)}</p></div>
           </div>
         </div>
         <div className="border border-black/10 bg-white p-6 lg:p-8">
