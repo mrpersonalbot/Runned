@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PerceptionBars } from "@/components/perception-bars";
 import { ProductImage } from "@/components/product-image";
-import { demoShoes, getDemoShoe } from "@/lib/data/demo-shoes";
+import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
 import { confidenceScore, formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function generateStaticParams() { return demoShoes.map((shoe) => ({ slug: shoe.slug })); }
@@ -34,11 +34,11 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
       <section className="py-8">
         <div className="mb-4 flex items-end justify-between">
           <div><p className="eyebrow">Product views</p><h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See the shoe</h2></div>
-          <p className="text-xs text-black/45">Side · Top · Outsole</p>
+          <p className="text-xs text-black/45">Available product photography</p>
         </div>
         <div className="grid gap-px border border-black/10 bg-black/10 md:grid-cols-3">
           {shoe.images.map((image) => (
-            <figure key={image.label} className="bg-[#f8f8f6]">
+            <figure key={`${image.label}-${image.url}`} className="bg-[#f8f8f6]">
               <div className="aspect-square p-6 sm:p-8">
                 <ProductImage src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} className="h-full w-full object-contain mix-blend-multiply" />
               </div>
