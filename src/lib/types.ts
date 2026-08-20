@@ -26,6 +26,8 @@ export type PriceSnapshot = {
   inStock?: boolean | null;
 };
 
+export type ShoeImageView = { label: "Side" | "Top" | "Outsole"; url: string; };
+
 export type DemoShoe = {
   slug: string;
   brand: string;
@@ -50,6 +52,7 @@ export type DemoShoe = {
   buyAgainPct: number;
   useCases: string[];
   accent: string;
+  images: ShoeImageView[];
   isLocalIndonesia?: boolean;
 };
 
