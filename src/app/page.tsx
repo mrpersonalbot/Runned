@@ -3,7 +3,7 @@ import { CatalogBrowser } from "@/components/catalog-browser";
 import { brandDirectory, demoShoes } from "@/lib/data/demo-shoes";
 
 export default function Home() {
-  const pricedCount = demoShoes.filter((shoe) => shoe.currentPrice).length;
+  const pricedCount = demoShoes.filter((shoe) => shoe.msrpIdr != null).length;
 
   return (
     <>
@@ -16,7 +16,7 @@ export default function Home() {
         </div>
         <div className="max-w-md lg:pb-2">
           <p className="text-lg leading-8 text-black/65">
-            Runned is a practical catalog of running shoes. Browse the models people actually run in, compare what is known, and see prices with a source and a date.
+            Runned is a practical catalog of running shoes. Browse the models people actually run in, compare what is known, and see the listed retail price at a glance.
           </p>
           <Link href="#shoes" className="mt-7 inline-flex border-b border-black pb-1 text-sm font-semibold">
             Browse the catalog <span className="ml-2">↓</span>
@@ -28,7 +28,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-black/10 px-5 lg:px-8">
           <div className="py-6 pr-5"><p className="font-display text-3xl">{demoShoes.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">models listed</p></div>
           <div className="px-5 py-6 sm:px-6"><p className="font-display text-3xl">{brandDirectory.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">brand families</p></div>
-          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{pricedCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">price checks</p></div>
+          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{pricedCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">retail prices</p></div>
         </div>
       </section>
 
@@ -39,7 +39,7 @@ export default function Home() {
         </div>
         <CatalogBrowser shoes={demoShoes} />
         <p className="mt-7 max-w-2xl text-xs leading-5 text-black/45">
-          Prices are snapshots, not promises. A model stays “unverified” until we can tie it to a current source. Community scores in this development catalog are not real reviews.
+          Retail prices are indicative and can vary by colourway or promotion. Community scores in this development catalog are not real reviews.
         </p>
       </section>
 
