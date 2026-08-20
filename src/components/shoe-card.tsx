@@ -4,14 +4,11 @@ import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
   const price = shoe.currentPrice?.priceIdr ?? shoe.msrpIdr;
-  const tone = shoe.isLocalIndonesia ? "bg-[#e4d2c2]" : shoe.category === "race" ? "bg-[#d9dfdc]" : shoe.category === "tempo" ? "bg-[#e4e0ce]" : shoe.category === "max-cushion" ? "bg-[#d8dce4]" : "bg-[#e7e2db]";
+  const tone = shoe.category === "race" ? "bg-[#d9dfdc]" : shoe.category === "tempo" ? "bg-[#e4e0ce]" : shoe.category === "max-cushion" ? "bg-[#d8dce4]" : "bg-[#e7e2db]";
 
   return (
     <Link href={`/shoes/${shoe.slug}`} className="group overflow-hidden bg-white transition hover:bg-[#fbfaf7]">
       <div className={`relative flex h-44 items-end ${tone} p-5`}>
-        <div className="absolute left-5 top-5">
-          {shoe.isLocalIndonesia && <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-black/60">Indonesia</div>}
-        </div>
         <div className="absolute right-5 top-5 text-[11px] font-bold uppercase tracking-[0.12em] text-black/45">{shoe.category}</div>
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-black/50">{shoe.brand}</p>
@@ -24,7 +21,7 @@ export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
           <div className="text-right">{price ? <div className="text-sm font-bold">{formatIDR(price)}</div> : <div className="text-sm text-black/45">Price unverified</div>}{shoe.currentPrice && <div className="mt-1 text-[11px] text-black/40">checked {shoe.currentPrice.observedAt}</div>}</div>
         </div>
         <p className="mt-4 line-clamp-2 text-sm leading-6 text-black/60">{shoe.description}</p>
-        <p className="mt-4 border-t border-black/10 pt-3 text-xs text-black/45">{shoe.currentPrice ? `Source: ${shoe.currentPrice.sourceLabel}` : "Current Indonesia price not verified"}</p>
+        <p className="mt-4 border-t border-black/10 pt-3 text-xs text-black/45">{shoe.currentPrice ? `Source: ${shoe.currentPrice.sourceLabel}` : "Current price not verified"}</p>
         <p className="mt-3 text-xs text-black/45">{shoe.useCases.join(" · ")}</p>
       </div>
     </Link>
