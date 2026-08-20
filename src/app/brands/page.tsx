@@ -1,4 +1,4 @@
-import { brandDirectory, demoShoes } from "@/lib/data/demo-shoes";
+import { brandDirectory, demoShoes } from "@/lib/data/catalog";
 
 export default function BrandsPage() {
   const local = brandDirectory.filter((brand) => brand.isLocalIndonesia);
