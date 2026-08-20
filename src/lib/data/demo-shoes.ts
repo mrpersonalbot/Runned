@@ -1,4 +1,5 @@
 import type { BrandDirectoryEntry, DemoShoe, PriceSnapshot, ShoeCategory } from "@/lib/types";
+import { shoeImages } from "@/lib/data/shoe-images";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 const observedAt = "2026-08-18";
@@ -78,6 +79,7 @@ export const demoShoes: DemoShoe[] = catalog.map(([slug, brand, model, category,
     buyAgainPct: 0,
     useCases: category === "race" ? ["Race"] : category === "tempo" ? ["Tempo", "Daily"] : category === "max-cushion" ? ["Easy", "Long run"] : ["Daily", "Easy"],
     accent: accents[index % accents.length],
+    images: shoeImages[slug],
     isLocalIndonesia: Boolean(local),
   };
 });
