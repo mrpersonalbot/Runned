@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PerceptionBars } from "@/components/perception-bars";
 import { ProductImage } from "@/components/product-image";
+import { ReviewSection } from "@/components/review-section";
+import { ShoeCard } from "@/components/shoe-card";
 import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
-import { confidenceScore, formatIDR } from "@/lib/shoes/scoring.mjs";
+import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function generateStaticParams() { return demoShoes.map((shoe) => ({ slug: shoe.slug })); }
 
@@ -16,10 +17,31 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
     ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Not published"],
     ["Drop", shoe.dropMm != null ? `${shoe.dropMm} mm` : "Not published"],
     ["Stack", shoe.heelStackMm != null && shoe.forefootStackMm != null ? `${shoe.heelStackMm} / ${shoe.forefootStackMm} mm` : "Not published"],
-    ["Midsole", shoe.midsole ?? "Pending"],
-    ["Plate", shoe.plate ?? "Pending"],
+    ["Midsole", shoe.midsole ?? "Not published"],
+    ["Plate", shoe.plate ?? "None"],
     ["Terrain", shoe.terrain],
   ];
+
+  const similar = demoShoes
+    .filter((candidate) => candidate.slug !== shoe.slug)
+    .map((candidate) => {
+      let score = 0;
+      if (candidate.category === shoe.category) score += 5;
+      if (candidate.terrain === shoe.terrain) score += 3;
+      if (candidate.brand === shoe.brand) score += 1;
+      if (candidate.isLocalIndonesia === shoe.isLocalIndonesia) score += 1;
+      if (shoe.msrpIdr && candidate.msrpIdr) {
+        const gap = Math.abs(candidate.msrpIdr - shoe.msrpIdr) / shoe.msrpIdr;
+        if (gap <= 0.15) score += 3;
+        else if (gap <= 0.3) score += 2;
+        else if (gap <= 0.5) score += 1;
+      }
+      if (shoe.weightG && candidate.weightG && Math.abs(candidate.weightG - shoe.weightG) <= 35) score += 1;
+      return { candidate, score };
+    })
+    .sort((a, b) => b.score - a.score || a.candidate.brand.localeCompare(b.candidate.brand))
+    .slice(0, 4)
+    .map(({ candidate }) => candidate);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
@@ -34,13 +56,13 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
       <section className="py-8">
         <div className="mb-4 flex items-end justify-between">
           <div><p className="eyebrow">Product views</p><h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See the shoe</h2></div>
-          <p className="text-xs text-black/45">Available product photography</p>
+          <p className="text-xs text-black/45">Normalized product photography</p>
         </div>
         <div className="grid gap-px border border-black/10 bg-black/10 md:grid-cols-3">
           {shoe.images.map((image) => (
-            <figure key={`${image.label}-${image.url}`} className="bg-[#f8f8f6]">
+            <figure key={`${image.label}-${image.url}`} className="bg-white">
               <div className="aspect-square p-6 sm:p-8">
-                <ProductImage src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} className="h-full w-full object-contain mix-blend-multiply" />
+                <ProductImage src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} />
               </div>
               <figcaption className="border-t border-black/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/50">{image.label} view</figcaption>
             </figure>
@@ -48,28 +70,27 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.8fr_1.2fr]">
-        <div className="space-y-6">
+      <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.72fr_1.28fr]">
+        <div>
           <div className="border border-black/10 bg-white p-6">
-            <p className="eyebrow">Community snapshot · demo</p>
-            <div className="mt-5 flex items-end gap-2"><span className="font-display text-5xl">{shoe.overallRating.toFixed(1)}</span><span className="pb-1 text-black/40">/ 5</span></div>
-            <p className="mt-2 text-sm text-black/55">{shoe.reviewCount} synthetic foundation reviews · {shoe.buyAgainPct}% would buy again</p>
-            <p className="mt-4 text-xs text-black/40">Confidence prototype: {confidenceScore(shoe.reviewCount)}/100</p>
-          </div>
-          <div className="border border-black/10 bg-white p-6">
-            <div className="flex items-center justify-between"><h2 className="font-display text-2xl">Product specifications</h2></div>
+            <h2 className="font-display text-2xl">Product specifications</h2>
             <dl className="mt-5 divide-y divide-black/10">{specs.map(([label, value]) => <div key={label} className="flex justify-between gap-4 py-3 text-sm"><dt className="text-black/45">{label}</dt><dd className="text-right font-semibold">{value}</dd></div>)}</dl>
             <div className="mt-5 border-t border-black/10 pt-4"><p className="text-xs text-black/40">Retail price</p><p className="mt-1 text-lg font-bold">{formatIDR(shoe.msrpIdr)}</p></div>
           </div>
+          <Link href={`/compare?a=${shoe.slug}`} className="mt-4 inline-flex border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-transparent hover:text-black">Compare this shoe →</Link>
         </div>
-        <div className="border border-black/10 bg-white p-6 lg:p-8">
-          <p className="eyebrow">How runners perceive it</p>
-          <h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">Community perception</h2>
-          <div className="mt-8"><PerceptionBars values={shoe.community} /></div>
-          <div className="mt-10 border-t border-black/10 pt-5"><p className="font-semibold">Why structured ratings?</p><p className="mt-2 max-w-xl text-sm leading-6 text-black/55">A five-star score loses context. Runned records how a shoe feels across consistent dimensions so runners can compare perception, not just opinions.</p></div>
-        </div>
+        <ReviewSection shoeSlug={shoe.slug} />
       </div>
-      <div className="flex justify-end"><Link href={`/compare?a=${shoe.slug}`} className="border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-transparent hover:text-black">Compare this shoe →</Link></div>
+
+      <section className="border-t border-black/10 py-12">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div><p className="eyebrow">Similar shoes</p><h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">Worth comparing next</h2></div>
+          <Link href="/#shoes" className="text-sm font-semibold underline underline-offset-4">Browse all shoes</Link>
+        </div>
+        <div className="grid gap-px border-l border-t border-black/10 bg-black/10 md:grid-cols-2 lg:grid-cols-4">
+          {similar.map((candidate) => <ShoeCard key={candidate.slug} shoe={candidate} />)}
+        </div>
+      </section>
     </div>
   );
 }
