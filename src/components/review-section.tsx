@@ -62,9 +62,10 @@ export function ReviewSection({ shoeSlug }: { shoeSlug: string }) {
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setSubmitting(true);
     setMessage("");
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const payload: Record<string, string | number | boolean> = {
       shoe: shoeSlug,
       rating_overall: Number(form.get("rating_overall")),
@@ -86,7 +87,7 @@ export function ReviewSection({ shoeSlug }: { shoeSlug: string }) {
       return;
     }
 
-    event.currentTarget.reset();
+    formElement.reset();
     setMessage("Review saved.");
     setSubmitting(false);
     await loadReviews();
