@@ -1,50 +1,76 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ProductImageProps = {
   src: string;
   alt: string;
   className?: string;
+  fallbackSrcs?: string[];
+  onUnavailable?: () => void;
 };
 
-export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
-  const [fallbackToSource, setFallbackToSource] = useState(false);
-  const [failed, setFailed] = useState(false);
+function normalizedUrl(src: string) {
+  if (!/^https?:\/\//i.test(src)) return src;
+  return `/api/product-image?url=${encodeURIComponent(src)}&v=4`;
+}
 
-  const normalizedSrc = useMemo(() => {
-    if (!/^https?:\/\//i.test(src)) return src;
-    return `/api/product-image?url=${encodeURIComponent(src)}&v=3`;
+export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable }: ProductImageProps) {
+  const candidates = useMemo(
+    () => Array.from(new Set([src, ...fallbackSrcs].filter(Boolean))),
+    [src, fallbackSrcs],
+  );
+  const [candidateIndex, setCandidateIndex] = useState(0);
+  const [useOriginal, setUseOriginal] = useState(false);
+  const [exhausted, setExhausted] = useState(false);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+    setUseOriginal(false);
+    setExhausted(false);
   }, [src]);
 
-  const displaySrc = fallbackToSource ? src : normalizedSrc;
+  const candidate = candidates[candidateIndex];
+  const processed = candidate ? normalizedUrl(candidate) : "";
+  const displaySrc = useOriginal ? candidate : processed;
 
-  if (failed) {
-    return (
-      <div role="img" aria-label={alt} className="grid h-full w-full place-items-center bg-white text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-black/35">
-        Photo unavailable
-      </div>
-    );
+  function handleError() {
+    if (!candidate) {
+      if (!exhausted) onUnavailable?.();
+      setExhausted(true);
+      return;
+    }
+
+    if (!useOriginal && processed !== candidate) {
+      setUseOriginal(true);
+      return;
+    }
+
+    const next = candidateIndex + 1;
+    if (next < candidates.length) {
+      setCandidateIndex(next);
+      setUseOriginal(false);
+      return;
+    }
+
+    if (!exhausted) onUnavailable?.();
+    setExhausted(true);
   }
+
+  if (exhausted || !candidate) return null;
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
       <img
         src={displaySrc}
         alt={alt}
-        className={`object-contain ${fallbackToSource ? "mix-blend-multiply" : ""} ${className}`}
-        style={fallbackToSource
+        className={`object-contain ${useOriginal ? "mix-blend-multiply" : ""} ${className}`}
+        style={useOriginal
           ? { width: "84%", height: "68%", objectFit: "contain", mixBlendMode: "multiply" }
           : { width: "100%", height: "100%", objectFit: "contain" }}
         loading="lazy"
         referrerPolicy="no-referrer"
-        onError={() => {
-          if (!fallbackToSource && normalizedSrc !== src) {
-            setFallbackToSource(true);
-            return;
-          }
-          setFailed(true);
-        }}
+        onError={handleError}
       />
     </div>
   );
