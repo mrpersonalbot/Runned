@@ -16,6 +16,14 @@ const allowedUrls = new Set(
 );
 
 type RGB = { r: number; g: number; b: number };
+type ForegroundComponent = {
+  pixels: number[];
+  area: number;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
 
 function pixelOffset(x: number, y: number, width: number, channels: number) {
   return (y * width + x) * channels;
@@ -155,6 +163,88 @@ function removeConnectedBackground(
   }
 }
 
+function componentGap(a: ForegroundComponent, b: ForegroundComponent) {
+  const x = Math.max(0, Math.max(a.minX, b.minX) - Math.min(a.maxX, b.maxX));
+  const y = Math.max(0, Math.max(a.minY, b.minY) - Math.min(a.maxY, b.maxY));
+  return { x, y };
+}
+
+function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: number, channels: number) {
+  if (channels < 4) return;
+
+  const total = width * height;
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+  const components: ForegroundComponent[] = [];
+  const alphaThreshold = 24;
+
+  for (let start = 0; start < total; start += 1) {
+    if (visited[start] || data[start * channels + 3] < alphaThreshold) continue;
+
+    let head = 0;
+    let tail = 0;
+    queue[tail] = start;
+    tail += 1;
+    visited[start] = 1;
+
+    const pixels: number[] = [];
+    let minX = width;
+    let maxX = 0;
+    let minY = height;
+    let maxY = 0;
+
+    while (head < tail) {
+      const index = queue[head];
+      head += 1;
+      pixels.push(index);
+
+      const x = index % width;
+      const y = Math.floor(index / width);
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const neighbor = ny * width + nx;
+          if (visited[neighbor] || data[neighbor * channels + 3] < alphaThreshold) continue;
+          visited[neighbor] = 1;
+          queue[tail] = neighbor;
+          tail += 1;
+        }
+      }
+    }
+
+    if (pixels.length >= 4) {
+      components.push({ pixels, area: pixels.length, minX, maxX, minY, maxY });
+    }
+  }
+
+  if (components.length <= 1) return;
+  components.sort((a, b) => b.area - a.area);
+  const primary = components[0];
+  const maxHorizontalGap = Math.max(10, Math.round(width * 0.025));
+  const maxVerticalGap = Math.max(10, Math.round(height * 0.03));
+
+  for (const component of components.slice(1)) {
+    const gap = componentGap(component, primary);
+    const overlapsX = component.maxX >= primary.minX && component.minX <= primary.maxX;
+    const overlapsY = component.maxY >= primary.minY && component.minY <= primary.maxY;
+    const closeToShoe =
+      (overlapsX && gap.y <= maxVerticalGap) ||
+      (overlapsY && gap.x <= maxHorizontalGap) ||
+      (gap.x <= maxHorizontalGap && gap.y <= maxVerticalGap);
+
+    if (closeToShoe) continue;
+    for (const index of component.pixels) data[index * channels + 3] = 0;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const sourceUrl = request.nextUrl.searchParams.get("url");
   if (!sourceUrl || !allowedUrls.has(sourceUrl)) {
@@ -197,6 +287,9 @@ export async function GET(request: NextRequest) {
         background.threshold,
       );
     }
+
+    // Remove detached logos, store badges and other isolated artwork that lives away from the shoe.
+    removeDetachedForegroundArtifacts(data, info.width, info.height, info.channels);
 
     const normalized = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: info.channels },
