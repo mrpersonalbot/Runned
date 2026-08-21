@@ -53,7 +53,7 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
         </div>
       </div>
 
-      <ProductGallery images={shoe.images} brand={shoe.brand} model={shoe.model} />
+      <ProductGallery slug={shoe.slug} images={shoe.images} brand={shoe.brand} model={shoe.model} />
 
       <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.72fr_1.28fr]">
         <div>
