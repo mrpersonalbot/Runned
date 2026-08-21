@@ -1,3 +1,5 @@
+import { canonicalColorwayFor } from "@/lib/data/canonical-shoe-images";
+import { galleryFixes } from "@/lib/data/gallery-fixes";
 import { gallerySourceOverrideFor } from "@/lib/data/gallery-source-overrides";
 import type { DemoShoe, ShoeImageView } from "@/lib/types";
 
@@ -171,11 +173,14 @@ function selectThree(staticImages: ShoeImageView[], extracted: Candidate[]) {
 
 async function resolve(shoe: DemoShoe) {
   const overridePage = gallerySourceOverrideFor(shoe.slug);
-  const staticImages = overridePage ? [] : shoe.images;
-  if (!overridePage && shoe.images.length >= 3) return selectThree(shoe.images, []);
+  const curated = Boolean(galleryFixes[shoe.slug] || canonicalColorwayFor(shoe.slug));
+
+  if (!overridePage && curated && shoe.images.length >= 3) {
+    return selectThree(shoe.images, []);
+  }
 
   const pageUrl = overridePage ?? shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
-  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) return selectThree(staticImages, []);
+  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) return selectThree(shoe.images, []);
 
   try {
     const controller = new AbortController();
@@ -189,11 +194,21 @@ async function resolve(shoe: DemoShoe) {
       next: { revalidate: 86400 },
     });
     clearTimeout(timeout);
-    if (!response.ok) return selectThree(staticImages, []);
+    if (!response.ok) return selectThree(shoe.images, []);
     const html = await response.text();
-    return selectThree(staticImages, extractFromHtml(html, pageUrl, shoe));
+    const extracted = extractFromHtml(html, pageUrl, shoe);
+
+    // Exact source overrides intentionally discard old product imagery so a
+    // watermarked/boxed or mismatched colourway cannot leak back in.
+    if (overridePage) return selectThree([], extracted);
+
+    // For legacy galleries, prefer images found on the shoe's own product page.
+    // Only use the existing images as a fallback if the page exposes too few views.
+    const fromPage = selectThree([], extracted);
+    if (fromPage.length >= 3) return fromPage;
+    return selectThree(fromPage, shoe.images.map((image) => ({ ...image, score: 1 })));
   } catch {
-    return selectThree(staticImages, []);
+    return selectThree(shoe.images, []);
   }
 }
 
