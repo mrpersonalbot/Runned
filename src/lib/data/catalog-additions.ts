@@ -8,9 +8,13 @@ export type CatalogEntry = [string, string, string, ShoeCategory, boolean?];
 
 export const extraPrices: Record<string, PriceSnapshot> = {
   "adidas-adizero-adios-pro-4": { priceIdr: 4000000, sourceLabel: "adidas Indonesia", sourceUrl: "https://www.adidas.co.id/id/sepatu-adizero-adios-pro-4/JQ9702.html", sourceType: "official-brand", observedAt },
-  "nike-alphafly-3": { priceIdr: 3431200, listPriceIdr: 4289000, sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/t/alphafly-3-mens-road-racing-shoes-8pgqkiYw/IM8066-999", sourceType: "official-brand", observedAt },
+  "nike-alphafly-3": { priceIdr: 3271200, listPriceIdr: 4089000, sourceLabel: "Nike Indonesia", sourceUrl: "https://www.nike.com/id/t/alphafly-3-road-racing-shoes-d6x9mh/FD8311-101", sourceType: "official-brand", observedAt },
+  "asics-metaspeed-sky-tokyo": { priceIdr: 4299000, sourceLabel: "ASICS Indonesia", sourceUrl: "https://asics.co.id/running/speed-shoes/metaspeed", sourceType: "official-brand", observedAt, inStock: true },
+  "hoka-mach-x-3": { priceIdr: 3399000, listPriceIdr: 3499000, sourceLabel: "HOKA ID Official Store", sourceUrl: "https://shopee.co.id/Hoka-Mach-X-3-Men%27s-Running-White-Alabaster-i.1507521183.51352865291", sourceType: "official-marketplace", observedAt, inStock: true },
   "new-balance-sc-elite-v5": { priceIdr: 3679200, listPriceIdr: 4599000, sourceLabel: "New Balance Indonesia", sourceUrl: "https://www.newbalance.co.id/", sourceType: "official-brand", observedAt },
   "puma-fast-r-nitro-elite-3": { priceIdr: 4299000, sourceLabel: "PUMA Indonesia", sourceUrl: "https://id.puma.com/en/", sourceType: "official-brand", observedAt },
+  "saucony-endorphin-pro-5": { priceIdr: 3599000, sourceLabel: "Saucony Official Store", sourceUrl: "https://shopee.co.id/Sepatu-Lari-Pria-SAUCONY-Shoes-Endorphin-Pro-5-Men-i.1046842842.56406763977", sourceType: "official-marketplace", observedAt, inStock: true },
+  "brooks-hyperion-elite-5": { priceIdr: 3999000, listPriceIdr: 4999000, sourceLabel: "Brooks Flagship Store", sourceUrl: "https://www.blibli.com/p/brooks-unisex-running-shoes-hyperion-elite-5-sepatu-lari-unisex-1000491d681/ps--BRO-70066-00323", sourceType: "official-marketplace", observedAt, inStock: true },
   "on-cloudboom-strike-2": { priceIdr: 4300000, sourceLabel: "On Indonesia", sourceUrl: "https://www.on.com/en-id/products/cloudboom-strike-2-u-3ug3005", sourceType: "official-brand", observedAt },
   "910-haze-strike-pro": { priceIdr: 579900, sourceLabel: "910 Indonesia", sourceUrl: "https://910.id/products/haze-strike-pro-putih-gading-hijau-tosca-hitam", sourceType: "official-brand", observedAt },
   "ortuseight-hyperblast-2-1": { priceIdr: 524300, listPriceIdr: 749000, sourceLabel: "Starting Lane Indonesia", sourceUrl: "https://startinglane.co.id/product/11040154/sepatu-lari-mens-ortuseight-hyperblast-21", sourceType: "retailer", observedAt },
@@ -19,13 +23,13 @@ export const extraPrices: Record<string, PriceSnapshot> = {
 
 export const extraRetailPrices: Record<string, number | null> = {
   "adidas-adizero-adios-pro-4": 4000000,
-  "nike-alphafly-3": 4289000,
-  "asics-metaspeed-sky-tokyo": null,
-  "hoka-mach-x-3": null,
+  "nike-alphafly-3": 4089000,
+  "asics-metaspeed-sky-tokyo": 4299000,
+  "hoka-mach-x-3": 3499000,
   "new-balance-sc-elite-v5": 4599000,
   "puma-fast-r-nitro-elite-3": 4299000,
-  "saucony-endorphin-pro-5": null,
-  "brooks-hyperion-elite-5": null,
+  "saucony-endorphin-pro-5": 3599000,
+  "brooks-hyperion-elite-5": 4999000,
   "on-cloudboom-strike-2": 4300000,
   "910-haze-strike-pro": 579900,
   "ortuseight-hyperblast-2-1": 749000,
@@ -64,7 +68,7 @@ export const extraCatalog: CatalogEntry[] = [
 
 export const extraShoeImages: Record<string, ShoeImageView[]> = {
   "adidas-adizero-adios-pro-4": [{ label: "Side", url: "https://www.tradeinn.com/f/14219/142195780/adidas-adizero-adios-pro-4-running-shoes.webp" }],
-  "nike-alphafly-3": [{ label: "Side", url: "https://cdn.shopify.com/s/files/1/0603/3031/1875/files/main-square_b9a06ba4-2422-442e-9738-0623944507f1.jpg?v=1737440005" }],
+  "nike-alphafly-3": [{ label: "Side", url: "https://static.nike.com/a/images/t_web_pdp_535_v2/f_auto%2Cu_9ddf04c7-2a9a-4d76-add1-d15af8f0263d%2Cc_scale%2Cfl_relative%2Cw_1.0%2Ch_1.0%2Cfl_layer_apply/0654e00d-6e45-4766-8714-d55a0ddbe3da/AIR%2BZOOM%2BALPHAFLY%2BNEXT%25%2B3.png" }],
   "asics-metaspeed-sky-tokyo": [{ label: "Side", url: "https://runners.ae/cdn/shop/files/ASICS-METASPEED-SKY-TOKYO-SHOES-FOR-MEN-WHITE-BLUE-1013A162-101_6.jpg?v=1767957587" }],
   "hoka-mach-x-3": [{ label: "Side", url: "https://cdn11.bigcommerce.com/s-21x65e8kfn/images/stencil/original/products/85174/469998/HOK3305_1000_3__22105.1767885702.jpg" }],
   "new-balance-sc-elite-v5": [{ label: "Side", url: "https://cdna.lystit.com/1040/1300/n/photos/endclothing/540f1d3d/new-balance-Linen-New-Balance-Sc-Elite-V5-Sneaker.jpeg" }],
