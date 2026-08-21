@@ -26,7 +26,10 @@ export type PriceSnapshot = {
   inStock?: boolean | null;
 };
 
-export type ShoeImageView = { label: "Side" | "Top" | "Outsole"; url: string; };
+export type ShoeImageView = {
+  label: "Side" | "Top" | "Outsole" | "Alternate" | "Rear";
+  url: string;
+};
 
 export type DemoShoe = {
   slug: string;
