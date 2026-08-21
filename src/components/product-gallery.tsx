@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductImage } from "@/components/product-image";
 import type { ShoeImageView } from "@/lib/types";
 
-export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
+export function ProductGallery({ slug, images, brand, model }: { slug: string; images: ShoeImageView[]; brand: string; model: string }) {
+  const [resolved, setResolved] = useState<ShoeImageView[]>(images);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  const visible = images.filter((image) => !failed.has(image.url));
 
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/shoe-gallery?slug=${encodeURIComponent(slug)}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (!active || !payload?.images?.length) return;
+        setResolved(payload.images);
+        setFailed(new Set());
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [slug]);
+
+  const visible = resolved.filter((image) => !failed.has(image.url));
   if (visible.length === 0) return null;
 
   return (
@@ -23,7 +37,6 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
               <ProductImage
                 src={image.url}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
-                className={image.label === "Top" ? "scale-[1.5]" : ""}
                 onUnavailable={() => setFailed((current) => {
                   const next = new Set(current);
                   next.add(image.url);
