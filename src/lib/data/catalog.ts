@@ -10,6 +10,7 @@ import {
   localExpansionShoeImages,
 } from "@/lib/data/catalog-additions-3";
 import { catalogExpansion4 } from "@/lib/data/catalog-additions-4";
+import { catalogExpansion5 } from "@/lib/data/catalog-additions-5";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
 import { galleryFixes } from "@/lib/data/gallery-fixes";
 
@@ -108,7 +109,14 @@ const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand,
   };
 });
 
-const allShoes = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes, ...catalogExpansion4];
+const allShoes = [
+  ...baseShoes,
+  ...extras,
+  ...moreShoes,
+  ...localExpansionShoes,
+  ...catalogExpansion4,
+  ...catalogExpansion5,
+];
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
