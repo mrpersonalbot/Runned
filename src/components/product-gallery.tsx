@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ProductImage } from "@/components/product-image";
-import type { ShoeImageView } from "@/lib/data/shoe-images";
+import type { ShoeImageView } from "@/lib/types";
 
 export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
