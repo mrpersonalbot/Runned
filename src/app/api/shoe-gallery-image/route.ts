@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getDemoShoe } from "@/lib/data/catalog";
+import { ensureProductCanvas } from "@/lib/images/ensure-product-canvas";
 import { normalizeProductImage } from "@/lib/images/normalize-product-image";
 import { resolveShoeGallery } from "@/lib/images/resolve-shoe-gallery";
 
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest) {
     try {
       const input = await fetchImage(image.url);
       const normalized = await normalizeProductImage(input);
-      return new Response(new Uint8Array(normalized), {
+      const canvas = await ensureProductCanvas(normalized);
+      return new Response(new Uint8Array(canvas), {
         status: 200,
         headers: {
           "content-type": "image/png",
