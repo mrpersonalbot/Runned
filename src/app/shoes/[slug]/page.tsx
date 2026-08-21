@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductImage } from "@/components/product-image";
+import { ProductGallery } from "@/components/product-gallery";
 import { ReviewSection } from "@/components/review-section";
 import { ShoeCard } from "@/components/shoe-card";
 import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
@@ -53,22 +53,7 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
         </div>
       </div>
 
-      <section className="py-8">
-        <div className="mb-4 flex items-end justify-between">
-          <div><p className="eyebrow">Product views</p><h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See the shoe</h2></div>
-          <p className="text-xs text-black/45">Normalized product photography</p>
-        </div>
-        <div className="grid gap-px border border-black/10 bg-black/10 md:grid-cols-3">
-          {shoe.images.map((image) => (
-            <figure key={`${image.label}-${image.url}`} className="bg-white">
-              <div className="aspect-square p-6 sm:p-8">
-                <ProductImage src={image.url} alt={`${shoe.brand} ${shoe.model}, ${image.label.toLowerCase()} view`} />
-              </div>
-              <figcaption className="border-t border-black/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/50">{image.label} view</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
+      <ProductGallery images={shoe.images} brand={shoe.brand} model={shoe.model} />
 
       <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.72fr_1.28fr]">
         <div>
