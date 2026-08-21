@@ -4,6 +4,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ReviewSection } from "@/components/review-section";
 import { ShoeCard } from "@/components/shoe-card";
 import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
+import { resolveShoeGallery } from "@/lib/images/resolve-shoe-gallery";
 import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function generateStaticParams() { return demoShoes.map((shoe) => ({ slug: shoe.slug })); }
@@ -12,6 +13,11 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const shoe = getDemoShoe(slug);
   if (!shoe) notFound();
+
+  const resolvedGallery = await resolveShoeGallery(shoe);
+  if (resolvedGallery.length < 3) {
+    console.warn(`[gallery-audit] ${shoe.slug}: resolved ${resolvedGallery.length}/3 images`);
+  }
 
   const specs = [
     ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Not published"],
