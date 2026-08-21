@@ -14,7 +14,7 @@ export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
 
   const normalizedSrc = useMemo(() => {
     if (!/^https?:\/\//i.test(src)) return src;
-    return `/api/product-image?url=${encodeURIComponent(src)}`;
+    return `/api/product-image?url=${encodeURIComponent(src)}&v=3`;
   }, [src]);
 
   const displaySrc = fallbackToSource ? src : normalizedSrc;
