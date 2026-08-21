@@ -1,3 +1,4 @@
+import { gallerySourceOverrideFor } from "@/lib/data/gallery-source-overrides";
 import type { DemoShoe, ShoeImageView } from "@/lib/types";
 
 type Candidate = ShoeImageView & { score: number };
@@ -15,6 +16,7 @@ const IMAGE_HOSTS = [
   "ncrsport.com", "blibli.com", "susercontent.com", "store-assets.com", "hoka.com",
   "brooksrunning.com", "saucony.com", "holabirdsports.com", "bike24.com",
   "prodirectsport.com", "run4it.com", "fleetfeet.com", "fit2run.com",
+  "sportinglife.ca", "sportsshoes.com", "therunnersshop.com.au", "runpacers.com",
 ];
 
 const cache = new Map<string, Promise<ShoeImageView[]>>();
@@ -69,7 +71,7 @@ function modelTokens(shoe: DemoShoe) {
 }
 
 function skuTokens(shoe: DemoShoe) {
-  const urls = [shoe.currentPrice?.sourceUrl, shoe.sourceUrl].filter(Boolean) as string[];
+  const urls = [gallerySourceOverrideFor(shoe.slug), shoe.currentPrice?.sourceUrl, shoe.sourceUrl].filter(Boolean) as string[];
   const tokens = new Set<string>();
   for (const value of urls) {
     for (const match of value.matchAll(/[A-Z]{1,5}\d{3,}[A-Z0-9-]*/gi)) tokens.add(match[0].toLowerCase());
@@ -91,7 +93,7 @@ function scoreCandidate(url: string, context: string, shoe: DemoShoe) {
   if (/1200|1600|1800|2000|2400|3000|3840/.test(text)) score += 1;
 
   try {
-    const source = shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
+    const source = gallerySourceOverrideFor(shoe.slug) ?? shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
     if (source && new URL(source).hostname === new URL(url).hostname) score += 2;
   } catch {}
 
@@ -168,9 +170,12 @@ function selectThree(staticImages: ShoeImageView[], extracted: Candidate[]) {
 }
 
 async function resolve(shoe: DemoShoe) {
-  if (shoe.images.length >= 3) return selectThree(shoe.images, []);
-  const pageUrl = shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
-  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) return selectThree(shoe.images, []);
+  const overridePage = gallerySourceOverrideFor(shoe.slug);
+  const staticImages = overridePage ? [] : shoe.images;
+  if (!overridePage && shoe.images.length >= 3) return selectThree(shoe.images, []);
+
+  const pageUrl = overridePage ?? shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
+  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) return selectThree(staticImages, []);
 
   try {
     const controller = new AbortController();
@@ -184,11 +189,11 @@ async function resolve(shoe: DemoShoe) {
       next: { revalidate: 86400 },
     });
     clearTimeout(timeout);
-    if (!response.ok) return selectThree(shoe.images, []);
+    if (!response.ok) return selectThree(staticImages, []);
     const html = await response.text();
-    return selectThree(shoe.images, extractFromHtml(html, pageUrl, shoe));
+    return selectThree(staticImages, extractFromHtml(html, pageUrl, shoe));
   } catch {
-    return selectThree(shoe.images, []);
+    return selectThree(staticImages, []);
   }
 }
 
