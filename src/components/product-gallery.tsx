@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ProductImage } from "@/components/product-image";
 import type { ShoeImageView } from "@/lib/types";
 
+const viewOrder: Record<ShoeImageView["label"], number> = {
+  Side: 0,
+  Top: 1,
+  Outsole: 2,
+  Alternate: 3,
+  Rear: 4,
+};
+
 export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  const visible = images.filter((image) => !failed.has(image.url));
+  const visible = useMemo(
+    () => images.filter((image) => !failed.has(image.url)).sort((a, b) => viewOrder[a.label] - viewOrder[b.label]),
+    [images, failed],
+  );
 
   if (visible.length === 0) return null;
 
@@ -23,7 +34,6 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
               <ProductImage
                 src={image.url}
                 view={image.label}
-                className={image.label === "Top" ? "scale-[1.28]" : ""}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {
                   const next = new Set(current);
