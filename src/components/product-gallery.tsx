@@ -23,6 +23,7 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
               <ProductImage
                 src={image.url}
                 view={image.label}
+                className={image.label === "Top" ? "scale-[1.28]" : ""}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {
                   const next = new Set(current);
