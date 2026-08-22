@@ -5,6 +5,21 @@ import type { ShoeImageView } from "@/lib/types";
 // these images. It is better to show fewer correct angles than an unrelated
 // image, marketplace badge, editorial photograph, or mixed colourway.
 export const galleryFixes: Record<string, ShoeImageView[]> = {
+  "nike-alphafly-3": [
+    { label: "Side", url: "https://img.ncrsport.com/img/storage/large/Fd8311-101-1.jpg" },
+    { label: "Top", url: "https://pufferreds.com/cdn/shop/files/FD8311-101_4.png?v=1763422519&width=2000" },
+    { label: "Outsole", url: "https://www.prodirectsport.us/cdn/shop/files/1026491_gallery_3.jpg?v=1774009869&width=2000" },
+  ],
+  "nike-streakfly-2": [
+    { label: "Side", url: "https://www.nike.qa/dw/image/v2/BDVB_PRD/on/demandware.static/-/Sites-akeneo-master-catalog/default/dwcb3c4d90/nk/3d6/3/5/0/7/5/3d635075_e355_4037_8583_b934cee6087b.png?q=100&sh=700&sm=fit&strip=false&sw=700" },
+    { label: "Top", url: "https://img.alpen-group.jp/Contents/ProductSubImages/0/4301563416-0001_sub03_LL.jpg" },
+    { label: "Outsole", url: "https://media.rundna.com.au/9efe9df0-68dd-468e-86b7-c9fdfe41a909.jpg" },
+  ],
+  "hoka-speedgoat-6": [
+    { label: "Side", url: "https://cdn11.bigcommerce.com/s-eeul26hjka/images/stencil/1280x1280/products/4330/137524/media__49340.1736331696.jpg?c=1&imbypass=on" },
+    { label: "Top", url: "https://www.paceathletic.com/cdn/shop/files/Mens-HOKA-Speedgoat-6-Black_Stardust-1147791-BKSTR-2.jpg?v=1749108874&width=1701" },
+    { label: "Outsole", url: "https://solemotive.com/cdn/shop/files/Hoka-Speedgoat-6-Wide-Mens-FOOTWEAR-Mens-Trail-4_1200x.jpg?v=1721367612" },
+  ],
   "hoka-mach-x-3": [
     { label: "Side", url: "https://media.au.hoka.com/cdn-cgi/image/fit%3Dscale-down%2Cf%3Dauto%2Cw%3D1280/products/4f6ed6b5-0262-407d-abb0-735426cc5fbb/db85786a/1168720-wbs_wbs_01.jpg" },
     { label: "Top", url: "https://media.au.hoka.com/cdn-cgi/image/fit%3Dscale-down%2Cf%3Dauto%2Cw%3D1280/products/4f6ed6b5-0262-407d-abb0-735426cc5fbb/51535343/1168720-wbs_wbs_02.jpg" },
@@ -41,8 +56,8 @@ export const galleryFixes: Record<string, ShoeImageView[]> = {
   ],
   "on-cloudflow-5": [
     { label: "Side", url: "https://www.holabirdsports.com/cdn/shop/files/042528_3.jpg?v=1749157957&width=2048" },
-    { label: "Top", url: "https://runninglab.my/cdn/shop/files/cLvaQXmk67ef53cd9d3de_1743737805.png?v=1754456095&width=1500" },
-    { label: "Outsole", url: "https://www.holabirdsports.com/cdn/shop/files/042528_4.jpg?v=1749157957&width=2048" },
+    { label: "Top", url: "https://bananarun.com/media/catalog/product/cache/aa5b17117e43c0b36f21fad92985fb3e/3/m/3mf10113306-cloudflow_5-fw25-arctic_stone-m-1x1-g2.png" },
+    { label: "Outsole", url: "https://images.prodirectsport.com/productimages/Gallery_3/1021860_Gallery_3_2016845.jpg" },
   ],
   "skechers-aero-razor": [
     { label: "Side", url: "https://www.skechers.com.au/media/catalog/product/2/4/246240_wbo_02.jpg?auto=webp&fit=cover&format=pjpg&quality=85&width=1200" },
