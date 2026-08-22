@@ -5,7 +5,7 @@ import { ProductImage } from "@/components/product-image";
 
 export function ShoeCard({ shoe, priority = false }: { shoe: DemoShoe; priority?: boolean }) {
   const price = shoe.msrpIdr ?? shoe.currentPrice?.priceIdr ?? null;
-  const imageSrc = `/api/shoe-gallery-image?slug=${encodeURIComponent(shoe.slug)}&index=0&v=4`;
+  const imageSrc = `/api/shoe-gallery-image?slug=${encodeURIComponent(shoe.slug)}&index=0&v=5`;
 
   return (
     <Link href={`/shoes/${shoe.slug}`} className="group overflow-hidden bg-white transition hover:bg-[#fbfaf7]">
