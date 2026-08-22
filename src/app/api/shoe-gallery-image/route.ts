@@ -39,12 +39,16 @@ export async function GET(request: NextRequest) {
   if (gallery.length === 0) return new Response("No gallery images", { status: 404 });
 
   const index = Number.isFinite(requestedIndex) ? Math.max(0, Math.min(gallery.length - 1, requestedIndex)) : 0;
-  const order = [gallery[index], ...gallery.filter((_, itemIndex) => itemIndex !== index)];
+  const requested = gallery[index];
+  const sameAngle = [
+    requested,
+    ...gallery.filter((image, itemIndex) => itemIndex !== index && image.label === requested.label),
+  ];
 
-  for (const image of order) {
+  for (const image of sameAngle) {
     try {
       const input = await fetchImage(image.url);
-      const normalized = await normalizeProductImage(input);
+      const normalized = await normalizeProductImage(input, requested.label);
       const canvas = await ensureProductCanvas(normalized);
       return new Response(new Uint8Array(canvas), {
         status: 200,
@@ -58,5 +62,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return new Response("Unable to load gallery image", { status: 502 });
+  return new Response("Unable to load requested gallery angle", { status: 502 });
 }
