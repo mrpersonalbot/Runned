@@ -11,7 +11,7 @@ const getCachedGallery = unstable_cache(
     if (!shoe) return [];
     return resolveShoeGallery(shoe);
   },
-  ["runned-gallery-json-v6"],
+  ["runned-gallery-json-v7"],
   { revalidate: 86_400 },
 );
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   return Response.json({
     images: gallery.map((image, index) => ({
       label: image.label,
-      url: `/api/shoe-gallery-image?slug=${encodeURIComponent(slug)}&index=${index}&v=6`,
+      url: `/api/shoe-gallery-image?slug=${encodeURIComponent(slug)}&index=${index}&v=7`,
     })),
   }, {
     headers: {
