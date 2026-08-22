@@ -1,5 +1,7 @@
 export const gallerySourceOverrides: Record<string, string> = {
   "nike-vaporfly-4": "https://www.nike.com/id/t/vaporfly-4-road-racing-shoes-PTwDtp/HF6414-112",
+  "nike-streakfly-2": "https://www.nike.ae/en/streakfly-2-proto-mens-road-racing-shoes/NKHF6417-100.html",
+  "hoka-speedgoat-6": "https://au.hoka.com/products/m-speedgoat-6-1147791-bblc-bblc",
   "on-cloudflow-5": "https://www.on.com/en-jp/products/cloudflow-5-m-3mf1011/mens/arctic-stone-shoes-3MF10113306",
   "brooks-glycerin-22": "https://www.fleetfeet.com/products/mens-brooks-glycerin-22?sku=110445-1D-090",
   "saucony-kinvara-16": "https://www.holabirdsports.com/products/saucony-kinvara-16-mens-black-white",
