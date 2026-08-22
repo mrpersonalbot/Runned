@@ -84,21 +84,16 @@ function skuTokens(shoe: DemoShoe) {
 function scoreCandidate(url: string, context: string, shoe: DemoShoe) {
   const text = `${url} ${context}`.toLowerCase();
   let score = 0;
-  const tokens = modelTokens(shoe);
-  const sku = skuTokens(shoe);
-
-  for (const token of tokens) if (text.includes(token)) score += 2;
-  for (const token of sku) if (text.includes(token)) score += 8;
+  for (const token of modelTokens(shoe)) if (text.includes(token)) score += 2;
+  for (const token of skuTokens(shoe)) if (text.includes(token)) score += 8;
   if (angleFrom(text) !== "Alternate") score += 5;
   if (/product|pdp|gallery|footwear|shoe|running/.test(text)) score += 2;
   if (/thumbnail|thumb|small|swatch/.test(text)) score -= 2;
   if (/1200|1600|1800|2000|2400|3000|3840/.test(text)) score += 1;
-
   try {
     const source = gallerySourceOverrideFor(shoe.slug) ?? shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
     if (source && new URL(source).hostname === new URL(url).hostname) score += 2;
   } catch {}
-
   return score;
 }
 
@@ -113,7 +108,6 @@ function addCandidate(map: Map<string, Candidate>, url: string | null, context: 
 
 function extractFromHtml(html: string, pageUrl: string, shoe: DemoShoe) {
   const map = new Map<string, Candidate>();
-
   for (const match of html.matchAll(/<img\b[^>]*>/gi)) {
     const tag = match[0];
     const alt = tag.match(/(?:alt|title)=["']([^"']*)["']/i)?.[1] ?? "";
@@ -123,18 +117,11 @@ function extractFromHtml(html: string, pageUrl: string, shoe: DemoShoe) {
     }
     const srcset = tag.match(/(?:srcset|data-srcset)=["']([^"']+)["']/i)?.[1];
     if (srcset) {
-      for (const item of srcset.split(",")) {
-        const value = item.trim().split(/\s+/)[0];
-        addCandidate(map, absoluteUrl(value, pageUrl), alt, shoe);
-      }
+      for (const item of srcset.split(",")) addCandidate(map, absoluteUrl(item.trim().split(/\s+/)[0], pageUrl), alt, shoe);
     }
   }
-
   const decoded = decodeHtml(html);
-  for (const match of decoded.matchAll(/https?:\/\/[^\s"'<>\\]+/gi)) {
-    addCandidate(map, absoluteUrl(match[0], pageUrl), "embedded product gallery", shoe);
-  }
-
+  for (const match of decoded.matchAll(/https?:\/\/[^\s"'<>\\]+/gi)) addCandidate(map, absoluteUrl(match[0], pageUrl), "embedded product gallery", shoe);
   return [...map.values()].sort((a, b) => b.score - a.score);
 }
 
@@ -151,37 +138,32 @@ function selectThree(staticImages: ShoeImageView[], extracted: Candidate[]) {
     seen.add(image.url);
     combined.push(image);
   }
-
   const picked: ShoeImageView[] = [];
   const pick = (labels: ShoeImageView["label"][]) => {
-    const candidate = combined.find((item) => labels.includes(item.label) && !picked.some((pickedItem) => pickedItem.url === item.url));
+    const candidate = combined.find((item) => labels.includes(item.label) && !picked.some((p) => p.url === item.url));
     if (candidate) picked.push({ label: candidate.label, url: candidate.url });
   };
-
   pick(["Side"]);
   pick(["Top"]);
   pick(["Outsole"]);
   while (picked.length < 3) {
-    const candidate = combined.find((item) => !picked.some((pickedItem) => pickedItem.url === item.url));
+    const candidate = combined.find((item) => !picked.some((p) => p.url === item.url));
     if (!candidate) break;
     picked.push({ label: candidate.label, url: candidate.url });
   }
-
   if (picked.length > 0 && picked[0].label !== "Side") picked[0] = { ...picked[0], label: "Side" };
   return picked.slice(0, 3);
 }
 
 async function resolve(shoe: DemoShoe) {
   const fixedImages = galleryFixes[shoe.slug];
-  if (fixedImages?.length) return selectThree(fixedImages, []);
+  if (fixedImages?.length && fixedImages.length >= 3) return selectThree(fixedImages, []);
 
-  const staticImages = shoe.images;
+  const staticImages = fixedImages?.length ? fixedImages : shoe.images;
   const overridePage = gallerySourceOverrideFor(shoe.slug);
   const curated = Boolean(canonicalColorwayFor(shoe.slug));
 
-  if (!overridePage && curated && staticImages.length >= 3) {
-    return selectThree(staticImages, []);
-  }
+  if (!overridePage && curated && staticImages.length >= 3) return selectThree(staticImages, []);
 
   const pageUrl = overridePage ?? shoe.currentPrice?.sourceUrl ?? shoe.sourceUrl;
   if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) return selectThree(staticImages, []);
@@ -191,22 +173,22 @@ async function resolve(shoe: DemoShoe) {
     const timeout = setTimeout(() => controller.abort(), 10_000);
     const response = await fetch(pageUrl, {
       signal: controller.signal,
-      headers: {
-        "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "text/html,application/xhtml+xml",
-      },
+      headers: { "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)", accept: "text/html,application/xhtml+xml" },
       next: { revalidate: 86400 },
     });
     clearTimeout(timeout);
     if (!response.ok) return selectThree(staticImages, []);
-    const html = await response.text();
-    const extracted = extractFromHtml(html, pageUrl, shoe);
+    const extracted = extractFromHtml(await response.text(), pageUrl, shoe);
 
-    if (overridePage) return selectThree([], extracted);
+    if (overridePage) {
+      const fromOverride = selectThree([], extracted);
+      if (fromOverride.length >= 2) return fromOverride;
+      return selectThree(staticImages, extracted);
+    }
 
     const fromPage = selectThree([], extracted);
     if (fromPage.length >= 3) return fromPage;
-    return selectThree(fromPage, staticImages.map((image) => ({ ...image, score: 1 })));
+    return selectThree(staticImages, extracted);
   } catch {
     return selectThree(staticImages, []);
   }
