@@ -39,7 +39,7 @@ const getCachedProductImage = unstable_cache(
     const canvas = await ensureProductCanvas(normalized);
     return canvas.toString("base64");
   },
-  ["runned-product-image-v8"],
+  ["runned-product-image-v9"],
   { revalidate: 31_536_000 },
 );
 
