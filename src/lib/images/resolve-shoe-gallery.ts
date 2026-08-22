@@ -85,8 +85,14 @@ export function isBlockedProductImageUrl(url: string) {
 
 function looksLikeImage(url: string) {
   if (isBlockedProductImageUrl(url)) return false;
+  const lower = url.toLowerCase();
+  if (/(product-variation|product-getselectablevariations|wishlist-|addtocart|add-to-cart|cart-|checkout|recommendation)/i.test(lower)) return false;
   if (/\.(?:png|jpe?g|webp|avif)(?:[?#]|$)/i.test(url)) return true;
-  return hostMatches(url, IMAGE_HOSTS);
+  if (!hostMatches(url, IMAGE_HOSTS)) return false;
+
+  // Some official image CDNs use extensionless URLs. Only allow those when the
+  // path itself clearly represents an image transform or product-media asset.
+  return /(?:\/a\/images\/|\/images?\/|\/media\/|\/cdn\/|\/img\/|is\/image|dw\/image|image\/upload|ctfassets|scene7|productimages|gallery|photography|phsrh|phcth|phsuh|phslh|sv0\d|sr[_-]?rt|sb[_-]?(?:tp|bt))/i.test(lower);
 }
 
 function angleFrom(text: string): ShoeImageView["label"] {
