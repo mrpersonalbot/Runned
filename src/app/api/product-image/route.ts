@@ -22,7 +22,8 @@ type ForegroundComponent = {
   minY: number;
   maxY: number;
 };
-type RawImage = { data: Buffer; width: number; height: number; channels: number };
+type ImageChannels = 1 | 2 | 3 | 4;
+type RawImage = { data: Buffer; width: number; height: number; channels: ImageChannels };
 
 function pixelOffset(x: number, y: number, width: number, channels: number) {
   return (y * width + x) * channels;
@@ -243,7 +244,7 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
 
 async function rawFromSharp(pipeline: sharp.Sharp): Promise<RawImage> {
   const { data, info } = await pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  return { data, width: info.width, height: info.height, channels: info.channels };
+  return { data, width: info.width, height: info.height, channels: info.channels as ImageChannels };
 }
 
 function cleanRaw(raw: RawImage, allowBackdropRemoval = true) {
