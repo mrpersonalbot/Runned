@@ -13,7 +13,7 @@ type ProductImageProps = {
 
 function normalizedUrl(src: string, view: ProductImageProps["view"]) {
   if (!/^https?:\/\//i.test(src)) return src;
-  const params = new URLSearchParams({ url: src, v: "6" });
+  const params = new URLSearchParams({ url: src, v: "7" });
   if (view) params.set("view", view);
   return `/api/product-image?${params.toString()}`;
 }
