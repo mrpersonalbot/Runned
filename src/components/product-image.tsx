@@ -8,14 +8,15 @@ type ProductImageProps = {
   className?: string;
   fallbackSrcs?: string[];
   onUnavailable?: () => void;
+  priority?: boolean;
 };
 
 function normalizedUrl(src: string) {
   if (!/^https?:\/\//i.test(src)) return src;
-  return `/api/product-image?url=${encodeURIComponent(src)}&v=7`;
+  return `/api/product-image?url=${encodeURIComponent(src)}&v=8`;
 }
 
-export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable }: ProductImageProps) {
+export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable, priority = false }: ProductImageProps) {
   const candidates = useMemo(
     () => Array.from(new Set([src, ...fallbackSrcs].filter(Boolean))),
     [src, fallbackSrcs],
@@ -49,9 +50,13 @@ export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUn
       <img
         src={displaySrc}
         alt={alt}
+        width={1200}
+        height={900}
         className={`object-contain ${className}`}
         style={{ width: "100%", height: "100%", objectFit: "contain" }}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        decoding="async"
         referrerPolicy="no-referrer"
         onError={handleError}
       />
