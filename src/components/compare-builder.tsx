@@ -62,11 +62,7 @@ export function CompareBuilder({ shoes, initial }: { shoes: DemoShoe[]; initial:
             {visible.map((shoe) => (
               <div key={shoe.slug} className="border-l border-white/15 p-4">
                 <div className="aspect-[4/3] bg-white p-3">
-                  <ProductImage
-                    src={`/api/shoe-gallery-image?slug=${encodeURIComponent(shoe.slug)}&index=0&v=3`}
-                    alt={`${shoe.brand} ${shoe.model}`}
-                    className="transition"
-                  />
+                  {shoe.images[0] && <ProductImage src={shoe.images[0].url} alt={`${shoe.brand} ${shoe.model}`} className="transition" />}
                 </div>
                 <p className="mt-4 text-xs uppercase tracking-[0.12em] text-white/45">{shoe.brand}</p>
                 <p className="mt-1 font-display text-2xl leading-none">{shoe.model}</p>
