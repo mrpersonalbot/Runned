@@ -17,7 +17,7 @@ async function fetchImage(sourceUrl: string) {
       signal: controller.signal,
       headers: {
         "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
         referer: new URL(sourceUrl).origin + "/",
       },
       cache: "force-cache",
@@ -37,7 +37,7 @@ const getCachedResolvedGallery = unstable_cache(
     if (!shoe) return [] as ShoeImageView[];
     return resolveShoeGallery(shoe);
   },
-  ["runned-resolved-gallery-v6"],
+  ["runned-resolved-gallery-v7"],
   { revalidate: 86_400 },
 );
 
@@ -48,7 +48,7 @@ const getCachedProcessedImage = unstable_cache(
     const canvas = await ensureProductCanvas(normalized);
     return canvas.toString("base64");
   },
-  ["runned-gallery-image-v6"],
+  ["runned-gallery-image-v7"],
   { revalidate: 31_536_000 },
 );
 
@@ -72,13 +72,10 @@ export async function GET(request: NextRequest) {
   if (!shoe) return new Response("Unknown shoe", { status: 404 });
 
   const normalizedIndex = Number.isFinite(requestedIndex) ? Math.max(0, requestedIndex) : 0;
-
   let gallery: ShoeImageView[];
-  if (normalizedIndex === 0) {
-    gallery = fastCardCandidates(slug);
-  } else {
-    gallery = await getCachedResolvedGallery(slug);
-  }
+
+  if (normalizedIndex === 0) gallery = fastCardCandidates(slug);
+  else gallery = await getCachedResolvedGallery(slug);
 
   if (gallery.length === 0) return new Response("No gallery images", { status: 404 });
 
