@@ -10,6 +10,7 @@ import {
   localExpansionShoeImages,
 } from "@/lib/data/catalog-additions-3";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
+import { cloudflow5 } from "@/lib/data/catalog-cloudflow-5";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -106,7 +107,7 @@ const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand,
   };
 });
 
-const allShoes = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes];
+const allShoes = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes, cloudflow5];
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
