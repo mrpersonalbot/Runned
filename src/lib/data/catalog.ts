@@ -13,6 +13,7 @@ import { catalogExpansion4 } from "@/lib/data/catalog-additions-4";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
 import { qualityImagesFor } from "@/lib/data/quality-image-overrides";
 import { applyImageHotfixes } from "@/lib/data/image-hotfixes";
+import { verifiedImagesFor } from "@/lib/data/verified-complete-galleries";
 import { cloudflow5 } from "@/lib/data/catalog-cloudflow-5";
 import { cloudsurferNext } from "@/lib/data/catalog-cloudsurfer-next";
 
@@ -128,9 +129,12 @@ const allShoes = [
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
-  images: applyImageHotfixes(
+  images: verifiedImagesFor(
     shoe.slug,
-    qualityImagesFor(shoe.slug, canonicalImagesFor(shoe.slug, shoe.images)),
+    applyImageHotfixes(
+      shoe.slug,
+      qualityImagesFor(shoe.slug, canonicalImagesFor(shoe.slug, shoe.images)),
+    ),
   ),
 }));
 
