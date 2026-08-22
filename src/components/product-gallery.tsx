@@ -10,7 +10,7 @@ export function ProductGallery({ slug, images, brand, model }: { slug: string; i
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/shoe-gallery?slug=${encodeURIComponent(slug)}&v=6`)
+    fetch(`/api/shoe-gallery?slug=${encodeURIComponent(slug)}&v=7`)
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => {
         if (!active || !payload?.images?.length) return;
