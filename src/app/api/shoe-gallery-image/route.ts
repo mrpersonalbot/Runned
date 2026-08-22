@@ -40,15 +40,19 @@ export async function GET(request: NextRequest) {
 
   const index = Number.isFinite(requestedIndex) ? Math.max(0, Math.min(gallery.length - 1, requestedIndex)) : 0;
   const requested = gallery[index];
-  const sameAngle = [
-    requested,
-    ...gallery.filter((image, itemIndex) => itemIndex !== index && image.label === requested.label),
-  ];
 
-  for (const image of sameAngle) {
+  // Product cards always request index 0. If the preferred side image dies at
+  // the upstream CDN, try the shoe's other already-filtered clean images rather
+  // than leaving the card blank. Detail-page angles stay angle-specific so a
+  // failed top/outsole image disappears instead of being mislabeled.
+  const candidates = index === 0
+    ? [requested, ...gallery.filter((_, itemIndex) => itemIndex !== index)]
+    : [requested, ...gallery.filter((image, itemIndex) => itemIndex !== index && image.label === requested.label)];
+
+  for (const image of candidates) {
     try {
       const input = await fetchImage(image.url);
-      const normalized = await normalizeProductImage(input, requested.label);
+      const normalized = await normalizeProductImage(input, image.label);
       const canvas = await ensureProductCanvas(normalized);
       return new Response(new Uint8Array(canvas), {
         status: 200,
@@ -62,5 +66,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return new Response("Unable to load requested gallery angle", { status: 502 });
+  return new Response("Unable to load requested gallery image", { status: 502 });
 }
