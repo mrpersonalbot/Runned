@@ -9,10 +9,7 @@ import {
   localExpansionRetailPrices,
   localExpansionShoeImages,
 } from "@/lib/data/catalog-additions-3";
-import { catalogExpansion4 } from "@/lib/data/catalog-additions-4";
-import { catalogExpansion5 } from "@/lib/data/catalog-additions-5";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
-import { galleryFixes } from "@/lib/data/gallery-fixes";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -109,18 +106,11 @@ const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand,
   };
 });
 
-const allShoes = [
-  ...baseShoes,
-  ...extras,
-  ...moreShoes,
-  ...localExpansionShoes,
-  ...catalogExpansion4,
-  ...catalogExpansion5,
-];
+const allShoes = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes];
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
-  images: galleryFixes[shoe.slug] ?? canonicalImagesFor(shoe.slug, shoe.images),
+  images: canonicalImagesFor(shoe.slug, shoe.images),
 }));
 
 export { brandDirectory, localBrands };
