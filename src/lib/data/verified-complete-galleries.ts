@@ -43,6 +43,22 @@ export const verifiedCompleteGalleries: Record<string, CompleteGallery> = {
   },
 
   // HOKA: exactly three views from one consistent SKU/colorway family.
+  "hoka-clifton-10": {
+    colorway: "Persimmon / Persimmon (1162030-PRSM)",
+    images: [
+      { label: "Side", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/0196555d-0e20-47a3-85a7-8e4899a19946/e5426476/1162030-prsm_prsm_01.jpg" },
+      { label: "Top", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/0196555d-0e20-47a3-85a7-8e4899a19946/df0e00b8/1162030-prsm_prsm_02.jpg" },
+      { label: "Outsole", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/0196555d-0e20-47a3-85a7-8e4899a19946/05e59587/1162030-prsm_prsm_05.jpg" },
+    ],
+  },
+  "hoka-bondi-9": {
+    colorway: "White / White (1162011-WWH)",
+    images: [
+      { label: "Side", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/f0f48b77-8333-46dd-ae58-8f1e316a7b4c/3f118df7/1162011-wwh_wwh_01.jpg" },
+      { label: "Top", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/f0f48b77-8333-46dd-ae58-8f1e316a7b4c/5ea15bbd/1162011-wwh_wwh_02.jpg" },
+      { label: "Outsole", url: "https://media.au.hoka.com/cdn-cgi/image/fit=scale-down,f=auto,w=1280/products/f0f48b77-8333-46dd-ae58-8f1e316a7b4c/e77d91d4/1162011-wwh_wwh_05.jpg" },
+    ],
+  },
   "hoka-mach-x-3": {
     colorway: "White / Alabaster (1168720-WBS)",
     images: [
