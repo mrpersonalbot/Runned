@@ -8,34 +8,48 @@ type ProductImageProps = {
   className?: string;
   fallbackSrcs?: string[];
   onUnavailable?: () => void;
-  priority?: boolean;
 };
 
 function normalizedUrl(src: string) {
   if (!/^https?:\/\//i.test(src)) return src;
-  return `/api/product-image?url=${encodeURIComponent(src)}&v=10`;
+  return `/api/product-image?url=${encodeURIComponent(src)}&v=4`;
 }
 
-export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable, priority = false }: ProductImageProps) {
+export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable }: ProductImageProps) {
   const candidates = useMemo(
     () => Array.from(new Set([src, ...fallbackSrcs].filter(Boolean))),
     [src, fallbackSrcs],
   );
   const [candidateIndex, setCandidateIndex] = useState(0);
+  const [useOriginal, setUseOriginal] = useState(false);
   const [exhausted, setExhausted] = useState(false);
 
   useEffect(() => {
     setCandidateIndex(0);
+    setUseOriginal(false);
     setExhausted(false);
   }, [src]);
 
   const candidate = candidates[candidateIndex];
-  const displaySrc = candidate ? normalizedUrl(candidate) : "";
+  const processed = candidate ? normalizedUrl(candidate) : "";
+  const displaySrc = useOriginal ? candidate : processed;
 
   function handleError() {
+    if (!candidate) {
+      if (!exhausted) onUnavailable?.();
+      setExhausted(true);
+      return;
+    }
+
+    if (!useOriginal && processed !== candidate) {
+      setUseOriginal(true);
+      return;
+    }
+
     const next = candidateIndex + 1;
     if (next < candidates.length) {
       setCandidateIndex(next);
+      setUseOriginal(false);
       return;
     }
 
@@ -50,13 +64,11 @@ export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUn
       <img
         src={displaySrc}
         alt={alt}
-        width={1200}
-        height={900}
-        className={`object-contain ${className}`}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }}
-        loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
-        decoding="async"
+        className={`object-contain ${useOriginal ? "mix-blend-multiply" : ""} ${className}`}
+        style={useOriginal
+          ? { width: "84%", height: "68%", objectFit: "contain", mixBlendMode: "multiply" }
+          : { width: "100%", height: "100%", objectFit: "contain" }}
+        loading="lazy"
         referrerPolicy="no-referrer"
         onError={handleError}
       />
