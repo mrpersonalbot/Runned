@@ -63,7 +63,7 @@ export function CatalogBrowser({ shoes }: { shoes: DemoShoe[] }) {
         <label className="flex items-center gap-2 py-4 text-sm md:border-l md:pl-5"><input type="checkbox" checked={pricedOnly} onChange={(e) => setPricedOnly(e.target.checked)} /> Priced</label>
       </div>
       <div className="mt-5 flex items-center justify-between text-sm text-black/50"><span>{filtered.length} models shown</span><span>{shoes.filter((shoe) => shoe.msrpIdr != null).length} retail prices</span></div>
-      <div className="mt-6 grid gap-px border-l border-t border-black/10 bg-black/10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{filtered.map((shoe, index) => <ShoeCard key={shoe.slug} shoe={shoe} priority={index < 8} />)}</div>
+      <div className="mt-6 grid gap-px border-l border-t border-black/10 bg-black/10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{filtered.map((shoe) => <ShoeCard key={shoe.slug} shoe={shoe} />)}</div>
       {filtered.length === 0 && <div className="mt-8 border border-dashed border-black/15 p-12 text-center text-black/50">No shoes match these filters yet.</div>}
     </div>
   );
