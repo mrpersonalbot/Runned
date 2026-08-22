@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   return Response.json({
     images: gallery.map((image, index) => ({
       label: image.label,
-      url: `/api/shoe-gallery-image?slug=${encodeURIComponent(slug)}&index=${index}&v=1`,
+      url: `/api/shoe-gallery-image?slug=${encodeURIComponent(slug)}&index=${index}&v=2`,
     })),
   }, {
     headers: { "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800" },
