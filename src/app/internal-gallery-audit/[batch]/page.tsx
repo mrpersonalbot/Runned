@@ -30,7 +30,7 @@ async function fetchImage(url: string) {
       signal: controller.signal,
       headers: {
         "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
         referer: new URL(url).origin + "/",
       },
       cache: "no-store",
