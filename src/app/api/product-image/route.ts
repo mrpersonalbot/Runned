@@ -7,8 +7,6 @@ export const dynamic = "force-dynamic";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 900;
-const INNER_WIDTH = 1000;
-const INNER_HEIGHT = 600;
 const TRANSPARENT = { r: 255, g: 255, b: 255, alpha: 0 };
 
 const allowedUrls = new Set(
@@ -24,13 +22,14 @@ type ForegroundComponent = {
   minY: number;
   maxY: number;
 };
+type RawImage = { data: Buffer; width: number; height: number; channels: number };
 
 function pixelOffset(x: number, y: number, width: number, channels: number) {
   return (y * width + x) * channels;
 }
 
 function sampleCornerBackground(data: Buffer, width: number, height: number, channels: number) {
-  const patch = Math.max(2, Math.min(10, Math.floor(Math.min(width, height) * 0.025)));
+  const patch = Math.max(2, Math.min(12, Math.floor(Math.min(width, height) * 0.025)));
   const points = [
     [0, 0],
     [Math.max(0, width - patch), 0],
@@ -65,7 +64,7 @@ function sampleCornerBackground(data: Buffer, width: number, height: number, cha
   }
 
   if (count === 0) {
-    return { transparent: true, color: { r: 255, g: 255, b: 255 }, threshold: 10 };
+    return { transparent: true, color: { r: 255, g: 255, b: 255 }, threshold: 10, spread: 0 };
   }
 
   const color = { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) };
@@ -82,7 +81,8 @@ function sampleCornerBackground(data: Buffer, width: number, height: number, cha
   return {
     transparent: alphaCount > count * 0.75,
     color,
-    threshold: Math.max(8, Math.min(16, spread + 6)),
+    threshold: Math.max(8, Math.min(22, spread + 8)),
+    spread,
   };
 }
 
@@ -137,8 +137,7 @@ function removeConnectedBackground(
     head += 1;
     const x = index % width;
     const y = Math.floor(index / width);
-    const offset = index * channels;
-    data[offset + 3] = 0;
+    data[index * channels + 3] = 0;
 
     enqueueIfBackground(x - 1, y);
     enqueueIfBackground(x + 1, y);
@@ -146,7 +145,7 @@ function removeConnectedBackground(
     enqueueIfBackground(x, y + 1);
   }
 
-  const haloThreshold = Math.min(18, threshold + 3);
+  const haloThreshold = Math.min(28, threshold + 5);
   for (let pass = 0; pass < 2; pass += 1) {
     const toClear: number[] = [];
     for (let y = 1; y < height - 1; y += 1) {
@@ -219,16 +218,14 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
       }
     }
 
-    if (pixels.length >= 4) {
-      components.push({ pixels, area: pixels.length, minX, maxX, minY, maxY });
-    }
+    if (pixels.length >= 4) components.push({ pixels, area: pixels.length, minX, maxX, minY, maxY });
   }
 
   if (components.length <= 1) return;
   components.sort((a, b) => b.area - a.area);
   const primary = components[0];
-  const maxHorizontalGap = Math.max(10, Math.round(width * 0.025));
-  const maxVerticalGap = Math.max(10, Math.round(height * 0.03));
+  const maxHorizontalGap = Math.max(10, Math.round(width * 0.03));
+  const maxVerticalGap = Math.max(10, Math.round(height * 0.035));
 
   for (const component of components.slice(1)) {
     const gap = componentGap(component, primary);
@@ -244,8 +241,44 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
   }
 }
 
+async function rawFromSharp(pipeline: sharp.Sharp): Promise<RawImage> {
+  const { data, info } = await pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  return { data, width: info.width, height: info.height, channels: info.channels };
+}
+
+function cleanRaw(raw: RawImage, allowBackdropRemoval = true) {
+  const background = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
+  if (!background.transparent && allowBackdropRemoval) {
+    removeConnectedBackground(
+      raw.data,
+      raw.width,
+      raw.height,
+      raw.channels,
+      background.color,
+      background.threshold,
+    );
+  }
+  removeDetachedForegroundArtifacts(raw.data, raw.width, raw.height, raw.channels);
+  return raw;
+}
+
+async function trimToRaw(raw: RawImage): Promise<RawImage> {
+  return rawFromSharp(
+    sharp(raw.data, { raw: { width: raw.width, height: raw.height, channels: raw.channels } })
+      .trim({ background: TRANSPARENT, threshold: 8 }),
+  );
+}
+
+function targetBox(view: string | null, width: number, height: number) {
+  const vertical = height > width * 1.12;
+  if (view === "Top" || vertical) return { width: 720, height: 800 };
+  if (view === "Outsole" && vertical) return { width: 720, height: 800 };
+  return { width: 1000, height: 620 };
+}
+
 export async function GET(request: NextRequest) {
   const sourceUrl = request.nextUrl.searchParams.get("url");
+  const view = request.nextUrl.searchParams.get("view");
   if (!sourceUrl || !allowedUrls.has(sourceUrl)) {
     return new Response("Unknown product image", { status: 404 });
   }
@@ -268,37 +301,37 @@ export async function GET(request: NextRequest) {
     if (!contentType.startsWith("image/")) throw new Error("Source is not an image");
 
     const input = Buffer.from(await response.arrayBuffer());
-    const prepared = sharp(input, { failOn: "none", animated: false })
-      .rotate()
-      .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
-      .ensureAlpha();
+    let raw = await rawFromSharp(
+      sharp(input, { failOn: "none", animated: false })
+        .rotate()
+        .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }),
+    );
 
-    const { data, info } = await prepared.raw().toBuffer({ resolveWithObject: true });
-    const background = sampleCornerBackground(data, info.width, info.height, info.channels);
+    // Pass 1 removes the source page/background. After trimming, a second pass
+    // catches nested product-card rectangles that were previously surrounded by
+    // the first background (the common "box inside box" marketplace artifact).
+    raw = cleanRaw(raw);
+    raw = await trimToRaw(raw);
+    raw = cleanRaw(raw);
+    raw = await trimToRaw(raw);
 
-    if (!background.transparent) {
-      removeConnectedBackground(
-        data,
-        info.width,
-        info.height,
-        info.channels,
-        background.color,
-        background.threshold,
-      );
-    }
-
-    removeDetachedForegroundArtifacts(data, info.width, info.height, info.channels);
-
-    const normalized = await sharp(data, {
-      raw: { width: info.width, height: info.height, channels: info.channels },
+    const target = targetBox(view, raw.width, raw.height);
+    const fitted = await sharp(raw.data, {
+      raw: { width: raw.width, height: raw.height, channels: raw.channels },
     })
-      .trim({ background: TRANSPARENT, threshold: 8 })
-      .resize({ width: INNER_WIDTH, height: INNER_HEIGHT, fit: "contain", background: TRANSPARENT })
+      .resize({ width: target.width, height: target.height, fit: "contain", background: TRANSPARENT })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+
+    const meta = await sharp(fitted).metadata();
+    const fittedWidth = meta.width ?? target.width;
+    const fittedHeight = meta.height ?? target.height;
+    const normalized = await sharp(fitted)
       .extend({
-        top: Math.floor((CANVAS_HEIGHT - INNER_HEIGHT) / 2),
-        bottom: Math.ceil((CANVAS_HEIGHT - INNER_HEIGHT) / 2),
-        left: Math.floor((CANVAS_WIDTH - INNER_WIDTH) / 2),
-        right: Math.ceil((CANVAS_WIDTH - INNER_WIDTH) / 2),
+        top: Math.floor((CANVAS_HEIGHT - fittedHeight) / 2),
+        bottom: Math.ceil((CANVAS_HEIGHT - fittedHeight) / 2),
+        left: Math.floor((CANVAS_WIDTH - fittedWidth) / 2),
+        right: Math.ceil((CANVAS_WIDTH - fittedWidth) / 2),
         background: TRANSPARENT,
       })
       .png({ compressionLevel: 9 })
