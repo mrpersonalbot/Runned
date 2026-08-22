@@ -3,15 +3,15 @@ import type { DemoShoe } from "@/lib/types";
 import { formatIDR } from "@/lib/shoes/scoring.mjs";
 import { ProductImage } from "@/components/product-image";
 
-export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
+export function ShoeCard({ shoe, priority = false }: { shoe: DemoShoe; priority?: boolean }) {
   const price = shoe.msrpIdr ?? shoe.currentPrice?.priceIdr ?? null;
-  const imageSrc = `/api/shoe-gallery-image?slug=${encodeURIComponent(shoe.slug)}&index=0&v=3`;
+  const imageSrc = `/api/shoe-gallery-image?slug=${encodeURIComponent(shoe.slug)}&index=0&v=4`;
 
   return (
     <Link href={`/shoes/${shoe.slug}`} className="group overflow-hidden bg-white transition hover:bg-[#fbfaf7]">
       <div className="relative aspect-[4/3] border-b border-black/10 bg-white p-5">
         <div className="absolute right-5 top-5 z-10 text-[11px] font-bold uppercase tracking-[0.12em] text-black/45">{shoe.category}</div>
-        <ProductImage src={imageSrc} alt={`${shoe.brand} ${shoe.model} product photo`} className="transition duration-500 group-hover:scale-[1.03]" />
+        <ProductImage src={imageSrc} priority={priority} alt={`${shoe.brand} ${shoe.model} product photo`} className="transition duration-500 group-hover:scale-[1.03]" />
       </div>
       <div className="p-5">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-black/50">{shoe.brand}</p>
