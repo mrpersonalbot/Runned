@@ -18,7 +18,7 @@ async function fetchImage(sourceUrl: string) {
       signal: controller.signal,
       headers: {
         "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
         referer: new URL(sourceUrl).origin + "/",
       },
       cache: "force-cache",
@@ -39,7 +39,7 @@ const getCachedProductImage = unstable_cache(
     const canvas = await ensureProductCanvas(normalized);
     return canvas.toString("base64");
   },
-  ["runned-product-image-v9"],
+  ["runned-product-image-v10"],
   { revalidate: 31_536_000 },
 );
 
