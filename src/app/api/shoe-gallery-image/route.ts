@@ -37,7 +37,7 @@ const getCachedResolvedGallery = unstable_cache(
     if (!shoe) return [] as ShoeImageView[];
     return resolveShoeGallery(shoe);
   },
-  ["runned-resolved-gallery-v5"],
+  ["runned-resolved-gallery-v6"],
   { revalidate: 86_400 },
 );
 
@@ -48,7 +48,7 @@ const getCachedProcessedImage = unstable_cache(
     const canvas = await ensureProductCanvas(normalized);
     return canvas.toString("base64");
   },
-  ["runned-gallery-image-v5"],
+  ["runned-gallery-image-v6"],
   { revalidate: 31_536_000 },
 );
 
@@ -73,8 +73,6 @@ export async function GET(request: NextRequest) {
 
   const normalizedIndex = Number.isFinite(requestedIndex) ? Math.max(0, requestedIndex) : 0;
 
-  // Catalog cards only need one reliable thumbnail. Use the curated/fixed
-  // catalog images immediately and never discover imagery from merchant pages.
   let gallery: ShoeImageView[];
   if (normalizedIndex === 0) {
     gallery = fastCardCandidates(slug);
