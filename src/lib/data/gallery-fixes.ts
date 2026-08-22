@@ -1,10 +1,29 @@
 import type { ShoeImageView } from "@/lib/types";
 
-// Manually reviewed clean-image fallbacks. Multi-angle race shoe galleries such
-// as Alphafly/Vaporfly/Streakfly/Speedgoat are intentionally resolved from exact
-// product pages instead of hard-coded cross-site photos, which keeps one SKU and
-// one colourway together.
+// Manually reviewed product photography. Entries here are authoritative: the
+// gallery resolver must never scrape a merchant/product page to replace or fill
+// these images. It is better to show fewer correct angles than an unrelated
+// image, marketplace badge, editorial photograph, or mixed colourway.
 export const galleryFixes: Record<string, ShoeImageView[]> = {
+  "hoka-mach-x-3": [
+    { label: "Side", url: "https://media.au.hoka.com/cdn-cgi/image/fit%3Dscale-down%2Cf%3Dauto%2Cw%3D1280/products/4f6ed6b5-0262-407d-abb0-735426cc5fbb/db85786a/1168720-wbs_wbs_01.jpg" },
+    { label: "Top", url: "https://media.au.hoka.com/cdn-cgi/image/fit%3Dscale-down%2Cf%3Dauto%2Cw%3D1280/products/4f6ed6b5-0262-407d-abb0-735426cc5fbb/51535343/1168720-wbs_wbs_02.jpg" },
+    { label: "Alternate", url: "https://media.au.hoka.com/cdn-cgi/image/fit%3Dscale-down%2Cf%3Dauto%2Cw%3D1280/products/4f6ed6b5-0262-407d-abb0-735426cc5fbb/e1dbbd7b/1168720-wbs_wbs_03.jpg" },
+  ],
+  "new-balance-sc-elite-v5": [
+    { label: "Side", url: "https://nb.scene7.com/is/image/NB/mrcellr5_nb_02_i?fmt=webp&wid=1200" },
+    { label: "Alternate", url: "https://nb.scene7.com/is/image/NB/mrcellr5_nb_03_i?fmt=webp&wid=1200" },
+    { label: "Alternate", url: "https://nb.scene7.com/is/image/NB/mrcellr5_nb_04_i?fmt=webp&wid=1200" },
+  ],
+  "saucony-endorphin-pro-5": [
+    { label: "Side", url: "https://www.paceathletic.com/cdn/shop/files/Mens-Saucony-Endorphin-Pro-5-White_Black-S21064-101.jpg?v=1769557991&width=1701" },
+    { label: "Top", url: "https://www.paceathletic.com/cdn/shop/files/Mens-Saucony-Endorphin-Pro-5-White_Black-S21064-101-2.jpg?v=1769558018&width=1701" },
+    { label: "Outsole", url: "https://www.paceathletic.com/cdn/shop/files/Mens-Saucony-Endorphin-Pro-5-White_Black-S21064-101-5.jpg?v=1769558077&width=1701" },
+  ],
+  "ortuseight-hyperblast-2-1": [
+    { label: "Side", url: "https://sportaways.com/storage/products/7814/sepatu-running-ortuseight-hyperblast-21-sacramentolime-s4rv-1.webp" },
+    { label: "Outsole", url: "https://cdn.store-assets.com/s/986841/i/86692851.jpeg?width=1024" },
+  ],
   "ortuseight-hyperglide-3-1": [
     { label: "Side", url: "https://cdn.store-assets.com/s/1267934/i/84877827.jpeg" },
     { label: "Top", url: "https://img.ncrsport.com/img/storage/large/11040134-2.jpg" },
