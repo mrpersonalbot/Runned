@@ -9,14 +9,42 @@ import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function generateStaticParams() { return demoShoes.map((shoe) => ({ slug: shoe.slug })); }
 
+async function auditImage(url: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
+        accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        referer: new URL(url).origin + "/",
+        range: "bytes=0-32767",
+      },
+      cache: "no-store",
+    });
+    const type = response.headers.get("content-type") ?? "";
+    await response.body?.cancel();
+    return response.ok && type.startsWith("image/");
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export default async function ShoePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const shoe = getDemoShoe(slug);
   if (!shoe) notFound();
 
   const resolvedGallery = await resolveShoeGallery(shoe);
-  if (resolvedGallery.length < 3) {
-    console.warn(`[gallery-audit] ${shoe.slug}: resolved ${resolvedGallery.length}/3 images`);
+  const galleryChecks = await Promise.all(
+    resolvedGallery.slice(0, 3).map(async (image) => ({ ...image, available: await auditImage(image.url) })),
+  );
+  if (resolvedGallery.length < 3 || galleryChecks.length < 3 || galleryChecks.some((image) => !image.available)) {
+    const state = galleryChecks.map((image) => `${image.label}:${image.available ? "ok" : "FAIL"}`).join(", ");
+    console.warn(`[gallery-audit] ${shoe.slug}: resolved ${resolvedGallery.length}/3; ${state || "no valid images"}`);
   }
 
   const specs = [
