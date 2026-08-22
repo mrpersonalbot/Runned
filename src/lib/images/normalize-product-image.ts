@@ -73,13 +73,13 @@ function samplePatches(
   return {
     transparent: transparentCount > count * 0.75,
     color,
-    threshold: Math.max(8, Math.min(20, spread + 7)),
+    threshold: Math.max(8, Math.min(24, spread + 8)),
     count,
   };
 }
 
 function sampleCornerBackground(data: Buffer, width: number, height: number, channels: number) {
-  const patch = Math.max(2, Math.min(12, Math.floor(Math.min(width, height) * 0.025)));
+  const patch = Math.max(2, Math.min(14, Math.floor(Math.min(width, height) * 0.03)));
   return samplePatches(
     data,
     width,
@@ -178,8 +178,8 @@ function removeConnectedBackground(
     enqueueIfBackground(x, y + 1);
   }
 
-  const haloThreshold = Math.min(22, threshold + 4);
-  for (let pass = 0; pass < 2; pass += 1) {
+  const haloThreshold = Math.min(28, threshold + 5);
+  for (let pass = 0; pass < 3; pass += 1) {
     const toClear: number[] = [];
     for (let y = 1; y < height - 1; y += 1) {
       for (let x = 1; x < width - 1; x += 1) {
@@ -200,9 +200,9 @@ function removeInternalMatte(data: Buffer, width: number, height: number, channe
 
   const boundsWidth = bounds.maxX - bounds.minX + 1;
   const boundsHeight = bounds.maxY - bounds.minY + 1;
-  if (boundsWidth < width * 0.2 || boundsHeight < height * 0.2) return;
+  if (boundsWidth < width * 0.16 || boundsHeight < height * 0.16) return;
 
-  const patch = Math.max(3, Math.min(14, Math.floor(Math.min(boundsWidth, boundsHeight) * 0.025)));
+  const patch = Math.max(3, Math.min(18, Math.floor(Math.min(boundsWidth, boundsHeight) * 0.035)));
   const sample = samplePatches(
     data,
     width,
@@ -219,9 +219,9 @@ function removeInternalMatte(data: Buffer, width: number, height: number, channe
 
   const brightness = (sample.color.r + sample.color.g + sample.color.b) / 3;
   const neutralSpread = Math.max(sample.color.r, sample.color.g, sample.color.b) - Math.min(sample.color.r, sample.color.g, sample.color.b);
-  if (sample.transparent || sample.count === 0 || brightness < 170 || neutralSpread > 38) return;
+  if (sample.transparent || sample.count === 0 || brightness < 145 || neutralSpread > 58) return;
 
-  removeConnectedBackground(data, width, height, channels, sample.color, Math.max(sample.threshold, 12), bounds);
+  removeConnectedBackground(data, width, height, channels, sample.color, Math.max(sample.threshold, 14), bounds);
 }
 
 function componentGap(a: ForegroundComponent, b: ForegroundComponent) {
@@ -286,13 +286,32 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
   if (components.length <= 1) return;
   components.sort((a, b) => b.area - a.area);
   const primary = components[0];
-  const maxHorizontalGap = Math.max(10, Math.round(width * 0.03));
-  const maxVerticalGap = Math.max(10, Math.round(height * 0.04));
+  const maxHorizontalGap = Math.max(8, Math.round(width * 0.025));
+  const maxVerticalGap = Math.max(8, Math.round(height * 0.025));
+  const primaryWidth = primary.maxX - primary.minX + 1;
+  const primaryHeight = primary.maxY - primary.minY + 1;
+  const guardX = Math.max(6, Math.round(primaryWidth * 0.025));
+  const guardY = Math.max(6, Math.round(primaryHeight * 0.025));
 
   for (const component of components.slice(1)) {
     const gap = componentGap(component, primary);
     const overlapsX = component.maxX >= primary.minX && component.minX <= primary.maxX;
     const overlapsY = component.maxY >= primary.minY && component.minY <= primary.maxY;
+    const smallArtifact = component.area <= primary.area * 0.16;
+    const outsidePrimary =
+      component.maxX < primary.minX - guardX ||
+      component.minX > primary.maxX + guardX ||
+      component.maxY < primary.minY - guardY ||
+      component.minY > primary.maxY + guardY;
+
+    // Marketplace badges, store logos and text watermarks are usually small,
+    // detached components adjacent to the shoe. Prefer a clean silhouette even
+    // if that also removes an isolated studio shadow.
+    if (smallArtifact && outsidePrimary) {
+      for (const index of component.pixels) data[index * channels + 3] = 0;
+      continue;
+    }
+
     const closeToShoe =
       (overlapsX && gap.y <= maxVerticalGap) ||
       (overlapsY && gap.x <= maxHorizontalGap) ||
@@ -303,10 +322,10 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
   }
 }
 
-function targetBox(label: ShoeImageView["label"] = "Side") {
-  if (label === "Top") return { width: 700, height: 830 };
-  if (label === "Outsole") return { width: 1040, height: 700 };
-  if (label === "Rear") return { width: 700, height: 800 };
+function targetBox(_label: ShoeImageView["label"] = "Side") {
+  // Every angle uses the exact same 1040×700 inner envelope. Vertical/top
+  // photos therefore reach the same maximum height as side/outsole photos,
+  // while aspect ratio is always preserved.
   return { width: 1040, height: 700 };
 }
 
@@ -325,13 +344,17 @@ export async function normalizeProductImage(input: Buffer, label: ShoeImageView[
     removeInternalMatte(data, info.width, info.height, info.channels);
   }
 
+  // Run a second matte pass to strip a nested white/grey product-photo box,
+  // then remove detached logos/badges/watermarks before trimming the shoe.
+  removeInternalMatte(data, info.width, info.height, info.channels);
+  removeDetachedForegroundArtifacts(data, info.width, info.height, info.channels);
   removeInternalMatte(data, info.width, info.height, info.channels);
   removeDetachedForegroundArtifacts(data, info.width, info.height, info.channels);
 
   const trimmed = await sharp(data, {
     raw: { width: info.width, height: info.height, channels: info.channels },
   })
-    .trim({ background: TRANSPARENT, threshold: 8 })
+    .trim({ background: TRANSPARENT, threshold: 10 })
     .png()
     .toBuffer();
 
