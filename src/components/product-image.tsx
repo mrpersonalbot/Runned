@@ -13,7 +13,7 @@ type ProductImageProps = {
 
 function normalizedUrl(src: string) {
   if (!/^https?:\/\//i.test(src)) return src;
-  return `/api/product-image?url=${encodeURIComponent(src)}&v=8`;
+  return `/api/product-image?url=${encodeURIComponent(src)}&v=9`;
 }
 
 export function ProductImage({ src, alt, className = "", fallbackSrcs = [], onUnavailable, priority = false }: ProductImageProps) {
