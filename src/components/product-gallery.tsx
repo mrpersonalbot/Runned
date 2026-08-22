@@ -10,7 +10,7 @@ export function ProductGallery({ slug, images, brand, model }: { slug: string; i
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/shoe-gallery?slug=${encodeURIComponent(slug)}&v=3`)
+    fetch(`/api/shoe-gallery?slug=${encodeURIComponent(slug)}&v=4`)
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => {
         if (!active || !payload?.images?.length) return;
@@ -31,11 +31,12 @@ export function ProductGallery({ slug, images, brand, model }: { slug: string; i
         <h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See the shoe</h2>
       </div>
       <div className={`grid gap-px border border-black/10 bg-black/10 ${visible.length >= 3 ? "md:grid-cols-3" : visible.length === 2 ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
-        {visible.map((image) => (
+        {visible.map((image, index) => (
           <figure key={`${image.label}-${image.url}`} className="bg-white">
             <div className="aspect-square overflow-hidden p-6 sm:p-8">
               <ProductImage
                 src={image.url}
+                priority={index === 0}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {
                   const next = new Set(current);
