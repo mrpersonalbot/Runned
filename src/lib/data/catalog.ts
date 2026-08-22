@@ -9,8 +9,11 @@ import {
   localExpansionRetailPrices,
   localExpansionShoeImages,
 } from "@/lib/data/catalog-additions-3";
+import { catalogExpansion4 } from "@/lib/data/catalog-additions-4";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
+import { qualityImagesFor } from "@/lib/data/quality-image-overrides";
 import { cloudflow5 } from "@/lib/data/catalog-cloudflow-5";
+import { cloudsurferNext } from "@/lib/data/catalog-cloudsurfer-next";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -107,11 +110,24 @@ const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand,
   };
 });
 
-const allShoes = [...baseShoes, ...extras, ...moreShoes, ...localExpansionShoes, cloudflow5];
+// Cloudflow 5 is already a standalone catalog entry on this branch. Keep the
+// requested expansion net-new by dropping the duplicate from batch four and
+// adding Cloudsurfer Next instead.
+const expansion4Unique = catalogExpansion4.filter((shoe) => shoe.slug !== cloudflow5.slug);
+
+const allShoes = [
+  ...baseShoes,
+  ...extras,
+  ...moreShoes,
+  ...localExpansionShoes,
+  cloudflow5,
+  ...expansion4Unique,
+  cloudsurferNext,
+];
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
-  images: canonicalImagesFor(shoe.slug, shoe.images),
+  images: qualityImagesFor(shoe.slug, canonicalImagesFor(shoe.slug, shoe.images)),
 }));
 
 export { brandDirectory, localBrands };
