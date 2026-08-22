@@ -1,9 +1,8 @@
 import sharp from "sharp";
+import type { ShoeImageView } from "@/lib/types";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 900;
-const INNER_WIDTH = 1000;
-const INNER_HEIGHT = 780;
 const TRANSPARENT = { r: 255, g: 255, b: 255, alpha: 0 };
 
 type RGB = { r: number; g: number; b: number };
@@ -304,7 +303,14 @@ function removeDetachedForegroundArtifacts(data: Buffer, width: number, height: 
   }
 }
 
-export async function normalizeProductImage(input: Buffer) {
+function targetBox(label: ShoeImageView["label"] = "Side") {
+  if (label === "Top") return { width: 700, height: 830 };
+  if (label === "Outsole") return { width: 1040, height: 700 };
+  if (label === "Rear") return { width: 700, height: 800 };
+  return { width: 1040, height: 700 };
+}
+
+export async function normalizeProductImage(input: Buffer, label: ShoeImageView["label"] = "Side") {
   const prepared = sharp(input, { failOn: "none", animated: false })
     .rotate()
     .resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true })
@@ -319,26 +325,32 @@ export async function normalizeProductImage(input: Buffer) {
     removeInternalMatte(data, info.width, info.height, info.channels);
   }
 
-  // A second matte pass catches retailer images whose outer background was removed
-  // but still contain an inset white/grey product rectangle.
   removeInternalMatte(data, info.width, info.height, info.channels);
   removeDetachedForegroundArtifacts(data, info.width, info.height, info.channels);
 
-  const trimmed = sharp(data, {
+  const trimmed = await sharp(data, {
     raw: { width: info.width, height: info.height, channels: info.channels },
-  }).trim({ background: TRANSPARENT, threshold: 8 });
-
-  const normalized = await trimmed
-    .resize({ width: INNER_WIDTH, height: INNER_HEIGHT, fit: "inside", withoutEnlargement: false })
-    .extend({
-      top: Math.floor((CANVAS_HEIGHT - INNER_HEIGHT) / 2),
-      bottom: Math.ceil((CANVAS_HEIGHT - INNER_HEIGHT) / 2),
-      left: Math.floor((CANVAS_WIDTH - INNER_WIDTH) / 2),
-      right: Math.ceil((CANVAS_WIDTH - INNER_WIDTH) / 2),
-      background: TRANSPARENT,
-    })
-    .png({ compressionLevel: 9 })
+  })
+    .trim({ background: TRANSPARENT, threshold: 8 })
+    .png()
     .toBuffer();
 
-  return normalized;
+  const target = targetBox(label);
+  const fitted = await sharp(trimmed, { failOn: "none" })
+    .resize({ width: target.width, height: target.height, fit: "inside", withoutEnlargement: false })
+    .png()
+    .toBuffer();
+  const metadata = await sharp(fitted).metadata();
+  const width = metadata.width ?? target.width;
+  const height = metadata.height ?? target.height;
+
+  const left = Math.max(0, Math.floor((CANVAS_WIDTH - width) / 2));
+  const right = Math.max(0, CANVAS_WIDTH - width - left);
+  const top = Math.max(0, Math.floor((CANVAS_HEIGHT - height) / 2));
+  const bottom = Math.max(0, CANVAS_HEIGHT - height - top);
+
+  return sharp(fitted)
+    .extend({ top, bottom, left, right, background: TRANSPARENT })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
 }
