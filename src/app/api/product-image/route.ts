@@ -1,10 +1,10 @@
+import { unstable_cache } from "next/cache";
 import { NextRequest } from "next/server";
 import { demoShoes } from "@/lib/data/catalog";
 import { ensureProductCanvas } from "@/lib/images/ensure-product-canvas";
 import { normalizeProductImage } from "@/lib/images/normalize-product-image";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 const allowedUrls = new Set(
   demoShoes.flatMap((shoe) => shoe.images.map((image) => image.url)),
@@ -32,6 +32,17 @@ async function fetchImage(sourceUrl: string) {
   }
 }
 
+const getCachedProductImage = unstable_cache(
+  async (sourceUrl: string) => {
+    const input = await fetchImage(sourceUrl);
+    const normalized = await normalizeProductImage(input);
+    const canvas = await ensureProductCanvas(normalized);
+    return canvas.toString("base64");
+  },
+  ["runned-product-image-v8"],
+  { revalidate: 31_536_000 },
+);
+
 export async function GET(request: NextRequest) {
   const sourceUrl = request.nextUrl.searchParams.get("url");
   if (!sourceUrl || !allowedUrls.has(sourceUrl)) {
@@ -39,14 +50,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const input = await fetchImage(sourceUrl);
-    const normalized = await normalizeProductImage(input);
-    const canvas = await ensureProductCanvas(normalized);
+    const encoded = await getCachedProductImage(sourceUrl);
+    const canvas = Buffer.from(encoded, "base64");
     return new Response(new Uint8Array(canvas), {
       status: 200,
       headers: {
         "content-type": "image/png",
-        "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
+        "cache-control": "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=604800, immutable",
+        "cdn-cache-control": "public, max-age=31536000, stale-while-revalidate=604800",
+        "vercel-cdn-cache-control": "public, max-age=31536000, stale-while-revalidate=604800",
       },
     });
   } catch (error) {
