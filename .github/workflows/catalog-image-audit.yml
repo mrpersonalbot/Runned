@@ -1,0 +1,76 @@
+name: Catalog image audit
+
+on:
+  push:
+    branches:
+      - agent/project-foundation
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Start local production server
+        run: |
+          npm start > /tmp/runned-server.log 2>&1 &
+          echo $! > /tmp/runned-server.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/runned-server.log
+          exit 1
+      - name: Audit every shoe gallery
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, urllib.request, sys, time
+
+          offset = 0
+          failures = []
+          total = None
+          while True:
+              url = f"http://127.0.0.1:3000/api/gallery-runtime-audit?offset={offset}&limit=10"
+              last_error = None
+              payload = None
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(url, timeout=180) as response:
+                          payload = json.load(response)
+                      break
+                  except Exception as exc:
+                      last_error = exc
+                      time.sleep(3 * (attempt + 1))
+              if payload is None:
+                  print(f"Audit batch {offset} failed to execute: {last_error}")
+                  sys.exit(2)
+
+              total = payload["total"]
+              for row in payload["rows"]:
+                  marker = "PASS" if row["ok"] else "FAIL"
+                  print(f"{marker} {row['slug']} {row.get('mode')} status={row.get('status')} family={row.get('family')}")
+                  if not row["ok"]:
+                      failures.append(row)
+
+              next_offset = payload.get("nextOffset")
+              if next_offset is None:
+                  break
+              offset = next_offset
+
+          print(f"Audited {total} shoes; failures={len(failures)}")
+          if failures:
+              print("FAILURE_JSON=" + json.dumps(failures, separators=(",", ":")))
+              sys.exit(1)
+          PY
+      - name: Print server errors on failure
+        if: failure()
+        run: tail -n 300 /tmp/runned-server.log || true
