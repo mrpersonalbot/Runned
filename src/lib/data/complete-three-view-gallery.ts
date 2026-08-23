@@ -8,15 +8,15 @@ function firstExternalImage(images: ShoeImageView[]) {
 }
 
 function resolvedUrl(shoe: DemoShoe, view: (typeof required)[number], seed: string) {
-  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "4" });
+  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "5" });
   if (shoe.sourceUrl && /^https?:\/\//i.test(shoe.sourceUrl)) params.set("source", shoe.sourceUrl);
   if (seed) params.set("seed", seed);
-  return `/api/legacy-shoe-image?${params.toString()}`;
+  return `/api/strict-shoe-image?${params.toString()}`;
 }
 
 export function completeThreeViewGallery(shoe: DemoShoe, images: ShoeImageView[]): ShoeImageView[] {
-  // Only explicitly curated galleries bypass the resolver. Structural labels alone
-  // are not enough: mixed colorways and wrong angles previously slipped through.
+  // Only manually verified galleries bypass the strict resolver. Every other
+  // gallery must prove Side + Top + Outsole from one image family at runtime.
   if (hasVerifiedCompleteGallery(shoe.slug)) return images;
 
   const seed = firstExternalImage(images);
