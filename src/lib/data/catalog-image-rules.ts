@@ -3,7 +3,7 @@ import { hasVerifiedCompleteGallery } from "@/lib/data/verified-complete-galleri
 
 const required = ["Side", "Top", "Outsole"] as const;
 const strictPrefix = "/api/strict-shoe-image?";
-const strictVersion = "5";
+const strictVersion = "6";
 
 export function assertCatalogImageRules(shoes: DemoShoe[]) {
   const failures: string[] = [];
