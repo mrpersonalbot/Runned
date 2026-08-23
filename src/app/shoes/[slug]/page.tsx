@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/product-gallery";
 import { ReviewSection } from "@/components/review-section";
 import { ShoeCard } from "@/components/shoe-card";
-import { demoShoes, getDemoShoe } from "@/lib/data/catalog";
+import { demoShoes, getDemoShoe, previousModelByCurrentSlug } from "@/lib/data/catalog";
 import { formatIDR } from "@/lib/shoes/scoring.mjs";
 
 export function generateStaticParams() { return demoShoes.map((shoe) => ({ slug: shoe.slug })); }
@@ -12,6 +12,9 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const shoe = getDemoShoe(slug);
   if (!shoe) notFound();
+
+  const previousSlug = previousModelByCurrentSlug[shoe.slug];
+  const previousShoe = previousSlug ? getDemoShoe(previousSlug) : null;
 
   const specs = [
     ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Not published"],
@@ -23,7 +26,7 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
   ];
 
   const similar = demoShoes
-    .filter((candidate) => candidate.slug !== shoe.slug)
+    .filter((candidate) => candidate.slug !== shoe.slug && candidate.slug !== previousSlug)
     .map((candidate) => {
       let score = 0;
       if (candidate.category === shoe.category) score += 5;
@@ -66,6 +69,18 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
         </div>
         <ReviewSection shoeSlug={shoe.slug} />
       </div>
+
+      {previousShoe ? (
+        <section className="border-t border-black/10 py-12">
+          <div className="mb-6">
+            <p className="eyebrow">Previous generation</p>
+            <h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See what came before</h2>
+          </div>
+          <div className="max-w-sm border-l border-t border-black/10 bg-black/10">
+            <ShoeCard shoe={previousShoe} />
+          </div>
+        </section>
+      ) : null}
 
       <section className="border-t border-black/10 py-12">
         <div className="mb-6 flex items-end justify-between gap-4">
