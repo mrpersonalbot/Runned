@@ -12,9 +12,14 @@ const gallerySourceOverrides: Record<string, string> = {
   "hoka-mach-x-2": "https://www.fleetfeet.com/products/mens-hoka-mach-x-2",
   "hoka-rocket-x-2": "https://www.fleetfeet.com/products/hoka-rocket-x-2",
 
+  "new-balance-sc-trainer-v2": "https://www.fleetfeet.com/products/mens-new-balance-fuelcell-supercomp-trainer-v2?sku=MRCX-1D-BK3&width=D",
+
   "puma-velocity-nitro-3": "https://id.puma.com/en/pd/velocity-nitro%E2%84%A2-3-mens-running-shoes/309701.html",
   "puma-velocity-nitro-4": "https://id.puma.com/en/pd/velocity-nitro%E2%84%A2-4-running-shoes-men/312913.html?dwvar_312913_color=01",
   "puma-deviate-nitro-3": "https://id.puma.com/en/pd/deviate-nitro%E2%84%A2-3-running-shoes-men/309707.html?dwvar_309707_color=02",
+
+  "910-haze-tempo": "https://910.id/products/haze-tempo-hitam-biru-kuning",
+  "910-haze-tempo-2": "https://910.id/products/haze-tempo-2-0-hitam-abu-ungu",
 };
 
 export function gallerySourceFor(slug: string) {
