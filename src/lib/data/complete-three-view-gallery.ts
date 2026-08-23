@@ -1,5 +1,6 @@
 import type { DemoShoe, ShoeImageView } from "@/lib/types";
 import { hasVerifiedCompleteGallery } from "@/lib/data/verified-complete-galleries";
+import { gallerySourceFor } from "@/lib/data/shoe-gallery-source-overrides";
 
 const required = ["Side", "Top", "Outsole"] as const;
 
@@ -9,7 +10,8 @@ function firstExternalImage(images: ShoeImageView[]) {
 
 function resolvedUrl(shoe: DemoShoe, view: (typeof required)[number], seed: string) {
   const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "5" });
-  if (shoe.sourceUrl && /^https?:\/\//i.test(shoe.sourceUrl)) params.set("source", shoe.sourceUrl);
+  const source = gallerySourceFor(shoe.slug) ?? shoe.sourceUrl;
+  if (source && /^https?:\/\//i.test(source)) params.set("source", source);
   if (seed) params.set("seed", seed);
   return `/api/strict-shoe-image?${params.toString()}`;
 }
