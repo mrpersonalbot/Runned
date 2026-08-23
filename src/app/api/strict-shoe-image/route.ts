@@ -21,6 +21,29 @@ type Gallery = Record<View, Analyzed>;
 
 const VIEWS: View[] = ["Side", "Top", "Outsole"];
 const CANVAS = { width: 1200, height: 900 };
+const TRUSTED_RETAILERS = [
+  "fleetfeet.com",
+  "runningwarehouse.com",
+  "roadrunnersports.com",
+  "sportsshoes.com",
+  "misterrunning.com",
+  "runningxpert.com",
+  "holabirdsports.com",
+];
+
+const OFFICIAL_DOMAINS: Record<string, string> = {
+  adidas: "adidas.com",
+  nike: "nike.com",
+  asics: "asics.com",
+  hoka: "hoka.com",
+  "new balance": "newbalance.com",
+  puma: "puma.com",
+  saucony: "saucony.com",
+  brooks: "brooksrunning.com",
+  on: "on.com",
+  mizuno: "mizunousa.com",
+  skechers: "skechers.com",
+};
 
 function decodeHtml(value: string) {
   return value
@@ -39,13 +62,17 @@ function modelTokens(brand: string, model: string) {
     .filter((token) => token.length > 1 && !["men", "mens", "women", "womens", "shoe", "shoes", "running", "road"].includes(token));
 }
 
+function significantTokens(tokens: string[]) {
+  return tokens.filter((token) => token.length >= 3 && !/^v?\d+$/.test(token));
+}
+
 function variantKey(url: string) {
   const decoded = decodeURIComponent(url).toLowerCase();
   const puma = decoded.match(/\/global\/([^/]+)\/([^/]+)\//);
   if (puma) return `puma:${puma[1]}:${puma[2]}`;
   const asics = decoded.match(/(\d{4}[a-z]\d{3,4})[_-](\d{3})/i);
   if (asics) return `asics:${asics[1]}-${asics[2]}`;
-  const hoka = decoded.match(/\/(\d{6,8}-[a-z0-9]+)(?:_[a-z0-9]+)?_0?[1-9]\.(?:png|jpe?g|webp)/i);
+  const hoka = decoded.match(/(?:^|\/)(\d{6,8}-[a-z0-9]+)(?:_[a-z0-9]+)?(?:[_-]0?[1-9])?\.(?:png|jpe?g|webp)/i);
   if (hoka) return `hoka:${hoka[1]}`;
   const nike = decoded.match(/([a-z]{2}\d{4}-\d{3})/i);
   if (nike) return `nike:${nike[1]}`;
@@ -65,6 +92,21 @@ function normalizedPage(url: string) {
   } catch {
     return url;
   }
+}
+
+function pageHost(url: string) {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function isTrustedPage(url: string, officialDomain?: string) {
+  const host = pageHost(url);
+  if (!host) return false;
+  if (officialDomain && (host === officialDomain || host.endsWith(`.${officialDomain}`))) return true;
+  return TRUSTED_RETAILERS.some((domain) => host === domain || host.endsWith(`.${domain}`));
 }
 
 function familyKey(candidate: Candidate, seedKey: string | null) {
@@ -93,10 +135,10 @@ function candidateScore(imageUrl: string, pageUrl: string, hintText: string, tok
   }
   if (tokens.length && matched / tokens.length >= 0.5) score += 12;
   if (/product|products|\/pd\/|shoe|running|footwear|cdn|media|images/.test(hay)) score += 3;
-  if (/pinterest|ebay|amazon|aliexpress|temu|logo|icon|banner|sprite|avatar|review|video|watermark/.test(hay)) score -= 30;
+  if (/pinterest|ebay|amazon|aliexpress|temu|logo|icon|banner|sprite|avatar|review|video|watermark|shoe box|shoebox|packaging/.test(hay)) score -= 40;
   const key = variantKey(imageUrl);
   if (seedKey && key === seedKey) score += 70;
-  else if (seedKey && key && key !== seedKey) score -= 80;
+  else if (seedKey && key && key !== seedKey) score -= 100;
   return score;
 }
 
@@ -105,7 +147,16 @@ function attr(tag: string, name: string) {
   return decodeHtml(match?.[1] ?? match?.[2] ?? "");
 }
 
+function pageMatchesModel(html: string, tokens: string[]) {
+  const hay = decodeHtml(html).toLowerCase().replace(/[^a-z0-9]+/g, " ");
+  const important = significantTokens(tokens);
+  if (!important.length) return true;
+  const matched = important.filter((token) => hay.includes(token)).length;
+  return matched >= Math.max(1, Math.ceil(important.length * 0.55));
+}
+
 function parseProductPage(html: string, baseUrl: string, tokens: string[], seedKey: string | null) {
+  if (!pageMatchesModel(html, tokens)) return [] as Candidate[];
   const decoded = decodeHtml(html);
   const seen = new Set<string>();
   const result: Candidate[] = [];
@@ -127,9 +178,13 @@ function parseProductPage(html: string, baseUrl: string, tokens: string[], seedK
 
   for (const match of decoded.matchAll(/<img\b[^>]*>/gi)) {
     const tag = match[0];
-    const hintText = [attr(tag, "alt"), attr(tag, "title"), attr(tag, "aria-label"), attr(tag, "data-testid"), attr(tag, "class")]
-      .filter(Boolean)
-      .join(" ");
+    const hintText = [
+      attr(tag, "alt"),
+      attr(tag, "title"),
+      attr(tag, "aria-label"),
+      attr(tag, "data-testid"),
+      attr(tag, "class"),
+    ].filter(Boolean).join(" ");
     const values = [attr(tag, "src"), attr(tag, "data-src"), attr(tag, "data-zoom-image"), attr(tag, "srcset"), attr(tag, "data-srcset")];
     for (const value of values) {
       for (const part of value.split(/\s*,\s*/)) add(part.trim().split(/\s+/)[0] ?? "", hintText);
@@ -140,10 +195,10 @@ function parseProductPage(html: string, baseUrl: string, tokens: string[], seedK
     add(attr(match[0], "content"), "primary product image");
   }
 
-  return result.sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 48);
+  return result.sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 56);
 }
 
-function parseBing(html: string, tokens: string[], seedKey: string | null) {
+function parseBing(html: string, tokens: string[], seedKey: string | null, officialDomain?: string) {
   const result: Candidate[] = [];
   const seen = new Set<string>();
   for (const match of html.matchAll(/\sm=(?:"([^"]+)"|'([^']+)')/gi)) {
@@ -153,7 +208,7 @@ function parseBing(html: string, tokens: string[], seedKey: string | null) {
       const item = JSON.parse(raw) as { murl?: string; purl?: string; t?: string };
       if (!item.murl || !/^https?:\/\//i.test(item.murl) || seen.has(item.murl)) continue;
       const pageUrl = item.purl ?? "";
-      if (/pinterest|ebay|amazon|aliexpress|temu/i.test(pageUrl)) continue;
+      if (!isTrustedPage(pageUrl, officialDomain)) continue;
       const hintText = item.t ?? "";
       const score = candidateScore(item.murl, pageUrl, hintText, tokens, seedKey);
       if (score < 2) continue;
@@ -200,9 +255,12 @@ function deterministicSeedCandidates(seed: string, tokens: string[], seedKey: st
 
 function viewEvidence(candidate: Analyzed, view: View) {
   const text = decodeURIComponent(`${candidate.imageUrl} ${candidate.hintText}`).toLowerCase();
-  const side = /\b(side|lateral|profile|medial|outer view|inner view)\b|phsrh|phslh|_sr_rt_|_sr_lt_|\/sv01\//i.test(text);
+  const forbidden = /watermark|shoe box|shoebox|packaging|with box|box included/.test(text);
+  if (forbidden) return -100;
+
+  const side = /\b(side|side profile|lateral|profile|medial|outer view|inner view)\b|phsrh|phslh|_sr_rt_|_sr_lt_|\/sv01\//i.test(text);
   const top = /\b(top view|top-down|top down|overhead|bird.?s.?eye|upper view)\b|phst|sb_tp|_tp_|\/sv05\//i.test(text);
-  const outsole = /\b(outsole|bottom view|sole view|tread view)\b|phsbt|sb_bt|_bt_|\/bv\//i.test(text);
+  const outsole = /\b(outsole|bottom view|bottom outsole|sole view|tread view)\b|phsbt|sb_bt|_bt_|\/bv\//i.test(text);
   const frontRear = /\b(front|rear|heel view|back view)\b/.test(text);
 
   if (view === "Side") {
@@ -219,15 +277,15 @@ function viewEvidence(candidate: Analyzed, view: View) {
 
 async function analyze(candidate: Candidate, seedKey: string | null): Promise<Analyzed> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6500);
+  const timeout = setTimeout(() => controller.abort(), 7000);
   try {
     const response = await fetch(candidate.imageUrl, {
       signal: controller.signal,
       headers: {
-        "user-agent": "Mozilla/5.0 (compatible; Runned/2.0)",
+        "user-agent": "Mozilla/5.0 (compatible; Runned/3.0)",
         accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
       },
-      cache: "force-cache",
+      cache: "no-store",
     });
     if (!response.ok) throw new Error(`image ${response.status}`);
     const type = response.headers.get("content-type") ?? "";
@@ -292,14 +350,25 @@ function chooseGallery(images: Analyzed[], seedKey: string | null): Gallery | nu
   return best?.gallery ?? null;
 }
 
+async function deterministicGalleryFromCandidates(candidates: Candidate[], tokens: string[], seedKey: string | null) {
+  for (const candidate of candidates.slice(0, 20)) {
+    const derivedKey = variantKey(candidate.imageUrl) ?? seedKey;
+    const derived = deterministicSeedCandidates(candidate.imageUrl, tokens, derivedKey);
+    if (derived.length !== 3) continue;
+    const gallery = chooseGallery(await analyzeMany(derived, derivedKey, 3), derivedKey);
+    if (gallery) return gallery;
+  }
+  return null;
+}
+
 async function fetchHtml(url: string) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 9000);
   try {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36" },
-      cache: "force-cache",
+      cache: "no-store",
     });
     if (!response.ok) return null;
     const type = response.headers.get("content-type") ?? "";
@@ -316,12 +385,48 @@ async function galleryFromPage(url: string, tokens: string[], seedKey: string | 
   const html = await fetchHtml(url);
   if (!html) return null;
   const candidates = parseProductPage(html, url, tokens, seedKey);
-  return chooseGallery(await analyzeMany(candidates, seedKey, 30), seedKey);
+  if (!candidates.length) return null;
+
+  const deterministic = await deterministicGalleryFromCandidates(candidates, tokens, seedKey);
+  if (deterministic) return deterministic;
+
+  return chooseGallery(await analyzeMany(candidates, seedKey, 36), seedKey);
+}
+
+async function searchCandidates(query: string, tokens: string[], seedKey: string | null, officialDomain?: string) {
+  const response = await fetch(`https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC3`, {
+    headers: { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36" },
+    cache: "no-store",
+  });
+  if (!response.ok) return [] as Candidate[];
+  return parseBing(await response.text(), tokens, seedKey, officialDomain);
+}
+
+async function galleryFromSearch(query: string, tokens: string[], seedKey: string | null, officialDomain?: string) {
+  const searched = await searchCandidates(query, tokens, seedKey, officialDomain);
+  if (!searched.length) return null;
+
+  const deterministic = await deterministicGalleryFromCandidates(searched, tokens, seedKey);
+  if (deterministic) return { gallery: deterministic, pageUrl: "deterministic-search" };
+
+  const direct = chooseGallery(await analyzeMany(searched, seedKey, 30), seedKey);
+  if (direct) {
+    const pageUrl = direct.Side.pageUrl || direct.Top.pageUrl || direct.Outsole.pageUrl;
+    return { gallery: direct, pageUrl };
+  }
+
+  const pages = [...new Set(searched.map((candidate) => candidate.pageUrl).filter(Boolean))].slice(0, 6);
+  for (const pageUrl of pages) {
+    const gallery = await galleryFromPage(pageUrl, tokens, seedKey);
+    if (gallery) return { gallery, pageUrl };
+  }
+  return null;
 }
 
 async function resolveGallery(brand: string, model: string, source: string, seed: string) {
   const tokens = modelTokens(brand, model);
   const seedKey = variantKey(seed);
+  const officialDomain = OFFICIAL_DOMAINS[brand.toLowerCase()];
 
   const deterministic = deterministicSeedCandidates(seed, tokens, seedKey);
   if (deterministic.length === 3) {
@@ -334,27 +439,18 @@ async function resolveGallery(brand: string, model: string, source: string, seed
     if (gallery) return { gallery, pageUrl: source };
   }
 
-  const query = encodeURIComponent(`\"${brand} ${model}\" running shoes product side top outsole -ebay -amazon -pinterest`);
-  const response = await fetch(`https://www.bing.com/images/search?q=${query}&form=HDRSC3`, {
-    headers: { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36" },
-    cache: "force-cache",
-  });
-  if (!response.ok) return null;
-  const searched = parseBing(await response.text(), tokens, seedKey);
-
-  const direct = chooseGallery(await analyzeMany(searched, seedKey, 36), seedKey);
-  if (direct) {
-    const pageUrl = direct.Side.pageUrl || direct.Top.pageUrl || direct.Outsole.pageUrl;
-    return { gallery: direct, pageUrl };
+  if (officialDomain) {
+    const official = await galleryFromSearch(`site:${officialDomain} \"${brand} ${model}\" running shoes`, tokens, seedKey, officialDomain);
+    if (official) return official;
   }
 
-  const pages = [...new Set(searched.map((candidate) => candidate.pageUrl).filter((url) => /^https?:\/\//i.test(url)))].slice(0, 5);
-  for (const pageUrl of pages) {
-    const gallery = await galleryFromPage(pageUrl, tokens, seedKey);
-    if (gallery) return { gallery, pageUrl };
-  }
+  const fleetFeet = await galleryFromSearch(`site:fleetfeet.com \"${brand} ${model}\"`, tokens, seedKey, officialDomain);
+  if (fleetFeet) return fleetFeet;
 
-  return null;
+  const runningWarehouse = await galleryFromSearch(`site:runningwarehouse.com \"${brand} ${model}\"`, tokens, seedKey, officialDomain);
+  if (runningWarehouse) return runningWarehouse;
+
+  return galleryFromSearch(`\"${brand} ${model}\" running shoes side top outsole`, tokens, seedKey, officialDomain);
 }
 
 async function normalize(buffer: Buffer, view: View) {
@@ -387,7 +483,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const resolved = await resolveGallery(brand, model, source, seed);
-    if (!resolved) throw new Error("no single-family gallery with explicit Side/Top/Outsole evidence");
+    if (!resolved) throw new Error("no trusted single-family gallery with explicit Side/Top/Outsole evidence");
     const picked = resolved.gallery[view];
     const output = await normalize(picked.buffer, view);
     return new Response(new Uint8Array(output), {
