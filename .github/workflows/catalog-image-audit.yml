@@ -9,39 +9,46 @@ on:
 
 jobs:
   audit:
+    name: audit-${{ matrix.offset }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        offset: [0, 20, 40, 60, 80, 100, 120, 140]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm install --no-audit --no-fund
       - run: npm run build
       - name: Start local production server
         run: |
           npm start > /tmp/runned-server.log 2>&1 &
-          echo $! > /tmp/runned-server.pid
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
             sleep 1
           done
           cat /tmp/runned-server.log
           exit 1
-      - name: Audit every shoe gallery
+      - name: Audit catalog segment
+        env:
+          START_OFFSET: ${{ matrix.offset }}
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, urllib.request, sys, time
+          import json, os, urllib.request, sys, time
 
-          offset = 0
+          start = int(os.environ["START_OFFSET"])
           failures = []
-          total = None
-          while True:
+          tested = 0
+
+          for offset in (start, start + 10):
               url = f"http://127.0.0.1:3000/api/gallery-runtime-audit?offset={offset}&limit=10"
-              last_error = None
               payload = None
+              last_error = None
               for attempt in range(3):
                   try:
                       with urllib.request.urlopen(url, timeout=180) as response:
@@ -54,19 +61,17 @@ jobs:
                   print(f"Audit batch {offset} failed to execute: {last_error}")
                   sys.exit(2)
 
-              total = payload["total"]
               for row in payload["rows"]:
+                  tested += 1
                   marker = "PASS" if row["ok"] else "FAIL"
-                  print(f"{marker} {row['slug']} {row.get('mode')} status={row.get('status')} family={row.get('family')}")
+                  print(f"{marker} {row['slug']} {row.get('mode')} status={row.get('status')} family={row.get('family')} source={row.get('source')}")
                   if not row["ok"]:
                       failures.append(row)
 
-              next_offset = payload.get("nextOffset")
-              if next_offset is None:
+              if payload.get("nextOffset") is None:
                   break
-              offset = next_offset
 
-          print(f"Audited {total} shoes; failures={len(failures)}")
+          print(f"Audited segment from {start}; tested={tested}; failures={len(failures)}")
           if failures:
               print("FAILURE_JSON=" + json.dumps(failures, separators=(",", ":")))
               sys.exit(1)
