@@ -8,9 +8,45 @@ function firstExternalImage(images: ShoeImageView[]) {
   return images.find((image) => /^https?:\/\//i.test(image.url))?.url ?? "";
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function fleetFeetSource(shoe: DemoShoe) {
+  const brand = shoe.brand.toLowerCase();
+  const supported = new Set([
+    "adidas",
+    "nike",
+    "asics",
+    "hoka",
+    "new balance",
+    "puma",
+    "saucony",
+    "brooks",
+    "on",
+    "mizuno",
+    "skechers",
+  ]);
+  if (!supported.has(brand)) return null;
+
+  const brandSlug = slugify(shoe.brand);
+  const modelSlug = slugify(shoe.model);
+
+  // Fleet Feet retained the old HOKA ONE ONE naming on a few archived pages.
+  if (brand === "hoka" && /^clifton 9$/i.test(shoe.model)) {
+    return "https://www.fleetfeet.com/products/mens-hoka-one-one-clifton-9";
+  }
+
+  return `https://www.fleetfeet.com/products/mens-${brandSlug}-${modelSlug}`;
+}
+
 function resolvedUrl(shoe: DemoShoe, view: (typeof required)[number], seed: string) {
-  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "5" });
-  const source = gallerySourceFor(shoe.slug) ?? shoe.sourceUrl;
+  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "6" });
+  const source = gallerySourceFor(shoe.slug) ?? shoe.sourceUrl ?? fleetFeetSource(shoe);
   if (source && /^https?:\/\//i.test(source)) params.set("source", source);
   if (seed) params.set("seed", seed);
   return `/api/strict-shoe-image?${params.toString()}`;
