@@ -16,7 +16,6 @@ function asicsGallery(style: string): ShoeImageView[] {
 }
 
 export const verifiedCompleteGalleries: Record<string, CompleteGallery> = {
-  // ASICS official product photography follows one stable image family per SKU.
   "asics-metaspeed-sky-tokyo": {
     colorway: "White / Cobalt Burst (1013A162-101)",
     images: asicsGallery("1013A162-101"),
@@ -41,8 +40,6 @@ export const verifiedCompleteGalleries: Record<string, CompleteGallery> = {
     colorway: "White / Black (1013A183-100)",
     images: asicsGallery("1013A183-100"),
   },
-
-  // HOKA: exactly three views from one consistent SKU/colorway family.
   "hoka-clifton-10": {
     colorway: "Persimmon / Persimmon (1162030-PRSM)",
     images: [
@@ -91,4 +88,8 @@ export function verifiedImagesFor(slug: string, fallback: ShoeImageView[]) {
 
 export function verifiedColorwayFor(slug: string) {
   return verifiedCompleteGalleries[slug]?.colorway ?? null;
+}
+
+export function hasVerifiedCompleteGallery(slug: string) {
+  return Boolean(verifiedCompleteGalleries[slug]);
 }
