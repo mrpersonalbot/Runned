@@ -18,6 +18,7 @@ import { cloudflow5 } from "@/lib/data/catalog-cloudflow-5";
 import { cloudsurferNext } from "@/lib/data/catalog-cloudsurfer-next";
 import { predecessorShoes, previousModelByCurrentSlug } from "@/lib/data/catalog-predecessors";
 import { assertCatalogImageRules } from "@/lib/data/catalog-image-rules";
+import { completeThreeViewGallery } from "@/lib/data/complete-three-view-gallery";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -133,16 +134,19 @@ const currentSlugs = new Set(currentShoes.map((shoe) => shoe.slug));
 const historicalUnique = predecessorShoes.filter((shoe) => !currentSlugs.has(shoe.slug));
 const allShoes = [...currentShoes, ...historicalUnique];
 
-export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
-  ...shoe,
-  images: verifiedImagesFor(
+export const demoShoes: DemoShoe[] = allShoes.map((shoe) => {
+  const preferredImages = verifiedImagesFor(
     shoe.slug,
     applyImageHotfixes(
       shoe.slug,
       qualityImagesFor(shoe.slug, canonicalImagesFor(shoe.slug, shoe.images)),
     ),
-  ),
-}));
+  );
+  return {
+    ...shoe,
+    images: completeThreeViewGallery(shoe, preferredImages),
+  };
+});
 
 assertCatalogImageRules(demoShoes);
 
