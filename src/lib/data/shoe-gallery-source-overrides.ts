@@ -1,4 +1,5 @@
 const gallerySourceOverrides: Record<string, string> = {
+  "adidas-hyperboost-edge": "https://www.fleetfeet.com/products/mens-adidas-hyperboost-edge?sku=KI1913&width=D",
   "puma-velocity-nitro-3": "https://id.puma.com/en/pd/velocity-nitro%E2%84%A2-3-mens-running-shoes/309701.html",
   "puma-velocity-nitro-4": "https://id.puma.com/en/pd/velocity-nitro%E2%84%A2-4-running-shoes-men/312913.html?dwvar_312913_color=01",
   "puma-deviate-nitro-3": "https://id.puma.com/en/pd/deviate-nitro%E2%84%A2-3-running-shoes-men/309707.html?dwvar_309707_color=02",
