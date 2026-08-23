@@ -16,6 +16,7 @@ import { applyImageHotfixes } from "@/lib/data/image-hotfixes";
 import { verifiedImagesFor } from "@/lib/data/verified-complete-galleries";
 import { cloudflow5 } from "@/lib/data/catalog-cloudflow-5";
 import { cloudsurferNext } from "@/lib/data/catalog-cloudsurfer-next";
+import { predecessorShoes, previousModelByCurrentSlug } from "@/lib/data/catalog-predecessors";
 
 const demoCommunity = { softness: 4, energyReturn: 4, stability: 4, fitWidth: 3, toeBox: 3, heelLockdown: 4, grip: 4, durability: 4, breathability: 4, value: 4 };
 
@@ -117,7 +118,7 @@ const localExpansionShoes: DemoShoe[] = localExpansionCatalog.map(([slug, brand,
 // adding Cloudsurfer Next instead.
 const expansion4Unique = catalogExpansion4.filter((shoe) => shoe.slug !== cloudflow5.slug);
 
-const allShoes = [
+const currentShoes = [
   ...baseShoes,
   ...extras,
   ...moreShoes,
@@ -126,6 +127,10 @@ const allShoes = [
   ...expansion4Unique,
   cloudsurferNext,
 ];
+
+const currentSlugs = new Set(currentShoes.map((shoe) => shoe.slug));
+const historicalUnique = predecessorShoes.filter((shoe) => !currentSlugs.has(shoe.slug));
+const allShoes = [...currentShoes, ...historicalUnique];
 
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ...shoe,
@@ -138,5 +143,5 @@ export const demoShoes: DemoShoe[] = allShoes.map((shoe) => ({
   ),
 }));
 
-export { brandDirectory, localBrands };
+export { brandDirectory, localBrands, previousModelByCurrentSlug };
 export function getDemoShoe(slug: string) { return demoShoes.find((shoe) => shoe.slug === slug); }
