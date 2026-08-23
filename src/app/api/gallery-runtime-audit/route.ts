@@ -31,14 +31,29 @@ export async function GET(request: NextRequest) {
           cache: "no-store",
           headers: { "x-runned-runtime-audit": "1" },
         });
+        const contentType = response.headers.get("content-type") ?? "";
+        const verifiedView = response.headers.get("x-runned-image-view");
+        const evidence = Number(response.headers.get("x-runned-angle-evidence") ?? "0");
+        const family = response.headers.get("x-runned-image-family");
+        const isVerifiedImage =
+          response.ok &&
+          contentType.startsWith("image/png") &&
+          verifiedView === "Side" &&
+          Number.isFinite(evidence) &&
+          evidence >= 20 &&
+          Boolean(family);
+
         return {
           slug: shoe.slug,
           brand: shoe.brand,
           model: shoe.model,
-          ok: response.ok,
+          ok: isVerifiedImage,
           status: response.status,
-          mode: response.ok ? "strict-resolved" : "strict-rejected",
-          family: response.headers.get("x-runned-image-family"),
+          mode: isVerifiedImage ? "strict-resolved" : "strict-rejected",
+          contentType,
+          verifiedView,
+          evidence,
+          family,
           source: response.headers.get("x-runned-gallery-page"),
         };
       } finally {
