@@ -5,6 +5,7 @@ import type { DemoShoe } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type AuditRow = {
   slug: string;
@@ -32,7 +33,7 @@ async function auditShoe(shoe: DemoShoe, origin: string): Promise<AuditRow> {
 
   const target = new URL(side.url, origin);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90_000);
+  const timeout = setTimeout(() => controller.abort(), 45_000);
   try {
     const response = await fetch(target, {
       signal: controller.signal,
@@ -78,7 +79,7 @@ async function auditShoe(shoe: DemoShoe, origin: string): Promise<AuditRow> {
   }
 }
 
-async function auditWithConcurrency(batch: DemoShoe[], origin: string, concurrency = 3) {
+async function auditWithConcurrency(batch: DemoShoe[], origin: string, concurrency = 6) {
   const rows: AuditRow[] = new Array(batch.length);
   let next = 0;
 
@@ -96,11 +97,16 @@ async function auditWithConcurrency(batch: DemoShoe[], origin: string, concurren
 }
 
 export async function GET(request: NextRequest) {
-  const offset = Math.max(0, Number.parseInt(request.nextUrl.searchParams.get("offset") ?? "0", 10) || 0);
-  const requestedLimit = Number.parseInt(request.nextUrl.searchParams.get("limit") ?? "8", 10) || 8;
-  const limit = Math.max(1, Math.min(10, requestedLimit));
+  const hasPagination = request.nextUrl.searchParams.has("offset") || request.nextUrl.searchParams.has("limit");
+  const offset = hasPagination
+    ? Math.max(0, Number.parseInt(request.nextUrl.searchParams.get("offset") ?? "0", 10) || 0)
+    : 0;
+  const requestedLimit = hasPagination
+    ? Number.parseInt(request.nextUrl.searchParams.get("limit") ?? "10", 10) || 10
+    : demoShoes.length;
+  const limit = hasPagination ? Math.max(1, Math.min(10, requestedLimit)) : demoShoes.length;
   const batch = demoShoes.slice(offset, offset + limit);
-  const rows = await auditWithConcurrency(batch, request.nextUrl.origin, 3);
+  const rows = await auditWithConcurrency(batch, request.nextUrl.origin, hasPagination ? 3 : 6);
 
   return NextResponse.json({
     total: demoShoes.length,
@@ -109,6 +115,7 @@ export async function GET(request: NextRequest) {
     nextOffset: offset + rows.length < demoShoes.length ? offset + rows.length : null,
     passing: rows.filter((row) => row.ok).length,
     failing: rows.filter((row) => !row.ok).length,
+    failures: rows.filter((row) => !row.ok),
     rows,
   });
 }
