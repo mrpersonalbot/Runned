@@ -1,4 +1,10 @@
 const gallerySourceOverrides: Record<string, string> = {
+  // Exact manufacturer product pages for current models that previously fell
+  // back to ambiguous retailer/search galleries.
+  "adidas-adizero-evo-sl": "https://www.adidas.co.id/en/adizero-evo-sl-shoes/JH6206.html",
+  "adidas-adizero-boston-13": "https://www.adidas.co.id/en/adizero-boston-13-shoes/JS4939.html",
+  "nike-pegasus-42": "https://www.nike.com/id/t/pegasus-42-road-running-shoes/IB1873-702",
+  "nike-vomero-18": "https://www.nike.com/id/t/vomero-18-road-running-shoes-snsbkH/HM6803-101",
   "adidas-hyperboost-edge": "https://www.fleetfeet.com/products/mens-adidas-hyperboost-edge?sku=KI1913&width=D",
 
   "nike-vomero-17": "https://www.fleetfeet.com/products/mens-nike-vomero-17",
