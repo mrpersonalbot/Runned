@@ -35,26 +35,24 @@ function fleetFeetSource(shoe: DemoShoe) {
 
   const brandSlug = slugify(shoe.brand);
   const modelSlug = slugify(shoe.model);
-
-  // Fleet Feet retained the old HOKA ONE ONE naming on a few archived pages.
   if (brand === "hoka" && /^clifton 9$/i.test(shoe.model)) {
     return "https://www.fleetfeet.com/products/mens-hoka-one-one-clifton-9";
   }
-
   return `https://www.fleetfeet.com/products/mens-${brandSlug}-${modelSlug}`;
 }
 
 function resolvedUrl(shoe: DemoShoe, view: (typeof required)[number], seed: string) {
-  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "6" });
+  const params = new URLSearchParams({ brand: shoe.brand, model: shoe.model, view, v: "7" });
   const source = gallerySourceFor(shoe.slug) ?? shoe.sourceUrl ?? fleetFeetSource(shoe);
   if (source && /^https?:\/\//i.test(source)) params.set("source", source);
   if (seed) params.set("seed", seed);
-  return `/api/strict-shoe-image?${params.toString()}`;
+  return `/api/verified-shoe-image?${params.toString()}`;
 }
 
 export function completeThreeViewGallery(shoe: DemoShoe, images: ShoeImageView[]): ShoeImageView[] {
-  // Only manually verified galleries bypass the strict resolver. Every other
-  // gallery must prove Side + Top + Outsole from one image family at runtime.
+  // Only manually curated galleries bypass runtime verification. Every other
+  // model must prove all three angles from one family with metadata-level
+  // evidence before any of its product-view images can render.
   if (hasVerifiedCompleteGallery(shoe.slug)) return images;
 
   const seed = firstExternalImage(images);
