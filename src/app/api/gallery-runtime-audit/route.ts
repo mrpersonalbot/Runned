@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { GET as resolveStrictImage } from "@/app/api/strict-shoe-image/route";
 import { demoShoes } from "@/lib/data/catalog";
 import { hasVerifiedCompleteGallery } from "@/lib/data/verified-complete-galleries";
 import type { DemoShoe } from "@/lib/types";
@@ -31,15 +32,11 @@ async function auditShoe(shoe: DemoShoe, origin: string): Promise<AuditRow> {
     return { slug: shoe.slug, brand: shoe.brand, model: shoe.model, ok: false, status: 0, mode: "invalid-route" };
   }
 
-  const target = new URL(side.url, origin);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
   try {
-    const response = await fetch(target, {
-      signal: controller.signal,
-      cache: "no-store",
+    const target = new URL(side.url, origin);
+    const response = await resolveStrictImage(new NextRequest(target, {
       headers: { "x-runned-runtime-audit": "1" },
-    });
+    }));
     const contentType = response.headers.get("content-type") ?? "";
     const verifiedView = response.headers.get("x-runned-image-view");
     const evidence = Number(response.headers.get("x-runned-angle-evidence") ?? "0");
@@ -65,17 +62,15 @@ async function auditShoe(shoe: DemoShoe, origin: string): Promise<AuditRow> {
       family,
       source: response.headers.get("x-runned-gallery-page"),
     };
-  } catch (error) {
+  } catch {
     return {
       slug: shoe.slug,
       brand: shoe.brand,
       model: shoe.model,
       ok: false,
       status: 0,
-      mode: error instanceof Error && error.name === "AbortError" ? "strict-timeout" : "strict-error",
+      mode: "strict-error",
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
