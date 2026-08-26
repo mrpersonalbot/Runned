@@ -2,8 +2,8 @@ import type { DemoShoe } from "@/lib/types";
 import { hasVerifiedCompleteGallery } from "@/lib/data/verified-complete-galleries";
 
 const required = ["Side", "Top", "Outsole"] as const;
-const strictPrefix = "/api/strict-shoe-image?";
-const strictVersion = "6";
+const verifiedPrefix = "/api/verified-shoe-image?";
+const verifiedVersion = "7";
 
 export function assertCatalogImageRules(shoes: DemoShoe[]) {
   const failures: string[] = [];
@@ -18,7 +18,7 @@ export function assertCatalogImageRules(shoes: DemoShoe[]) {
       continue;
     }
 
-    const dynamic = shoe.images.every((image) => image.url.startsWith(strictPrefix));
+    const dynamic = shoe.images.every((image) => image.url.startsWith(verifiedPrefix));
     if (!dynamic) {
       if (!hasVerifiedCompleteGallery(shoe.slug)) failures.push(`${shoe.slug}[unverified-static-gallery]`);
       continue;
@@ -38,7 +38,7 @@ export function assertCatalogImageRules(shoes: DemoShoe[]) {
 
     for (const image of shoe.images) {
       const params = new URLSearchParams(image.url.split("?")[1] ?? "");
-      if (params.get("v") !== strictVersion) failures.push(`${shoe.slug}[stale-strict-resolver-version]`);
+      if (params.get("v") !== verifiedVersion) failures.push(`${shoe.slug}[stale-verified-resolver-version]`);
       if (params.get("brand") !== shoe.brand || params.get("model") !== shoe.model) failures.push(`${shoe.slug}[resolver-model-mismatch]`);
       if (params.get("view") !== image.label) failures.push(`${shoe.slug}[resolver-view-mismatch:${image.label}]`);
     }
