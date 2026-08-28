@@ -106,7 +106,7 @@ async function fetchWithTimeout(url: string, timeoutMs: number, accept: string) 
 async function fetchFirstImage(candidates: string[]) {
   for (const candidate of candidates.slice(0, 12)) {
     try {
-      const response = await fetchWithTimeout(candidate, 3500, "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+      const response = await fetchWithTimeout(candidate, 3500, "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5");
       if (!response.ok) continue;
       const contentType = response.headers.get("content-type") ?? "";
       if (!contentType.startsWith("image/")) continue;
