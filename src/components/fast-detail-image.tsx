@@ -13,7 +13,7 @@ type FastDetailImageProps = {
 };
 
 function cleanedUrl(src: string, view: ShoeImageView["label"]) {
-  const params = new URLSearchParams({ src, view, v: "3" });
+  const params = new URLSearchParams({ src, view, v: "4" });
   return `/api/detail-clean-image?${params.toString()}`;
 }
 
