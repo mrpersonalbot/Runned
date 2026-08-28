@@ -10,7 +10,10 @@ const CANVAS_HEIGHT = 900;
 const TRANSPARENT = { r: 255, g: 255, b: 255, alpha: 0 };
 
 const allowedUrls = new Set(
-  demoShoes.flatMap((shoe) => shoe.images.map((image) => image.url)),
+  demoShoes.flatMap((shoe) => [
+    ...shoe.images.map((image) => image.url),
+    ...(shoe.cardImageUrl ? [shoe.cardImageUrl] : []),
+  ]),
 );
 
 type RGB = { r: number; g: number; b: number };
