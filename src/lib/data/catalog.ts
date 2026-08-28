@@ -1,4 +1,4 @@
-import type { DemoShoe } from "@/lib/types";
+import type { DemoShoe, ShoeImageView } from "@/lib/types";
 import { brandDirectory, demoShoes as baseShoes, localBrands } from "@/lib/data/demo-shoes";
 import { extraCatalog, extraPrices, extraProductSpecs, extraRetailPrices, extraShoeImages } from "@/lib/data/catalog-additions";
 import { moreCatalog, morePrices, moreProductSpecs, moreRetailPrices, moreShoeImages } from "@/lib/data/catalog-additions-2";
@@ -134,6 +134,20 @@ const currentSlugs = new Set(currentShoes.map((shoe) => shoe.slug));
 const historicalUnique = predecessorShoes.filter((shoe) => !currentSlugs.has(shoe.slug));
 const allShoes = [...currentShoes, ...historicalUnique];
 
+const fastViewOrder: ShoeImageView["label"][] = ["Side", "Top", "Outsole", "Alternate", "Rear"];
+
+function fastDetailImages(preferredImages: ShoeImageView[]): ShoeImageView[] {
+  const unique = new Map<string, ShoeImageView>();
+  for (const label of fastViewOrder) {
+    const match = preferredImages.find((image) => image.label === label && image.url);
+    if (match && !unique.has(match.url)) unique.set(match.url, match);
+  }
+  for (const image of preferredImages) {
+    if (image.url && !unique.has(image.url)) unique.set(image.url, image);
+  }
+  return [...unique.values()].slice(0, 3);
+}
+
 export const demoShoes: DemoShoe[] = allShoes.map((shoe) => {
   const preferredImages = verifiedImagesFor(
     shoe.slug,
@@ -143,10 +157,12 @@ export const demoShoes: DemoShoe[] = allShoes.map((shoe) => {
     ),
   );
   const cardImage = preferredImages.find((image) => image.label === "Side") ?? preferredImages[0] ?? null;
+  const detailImages = fastDetailImages(preferredImages);
 
   return {
     ...shoe,
     cardImageUrl: cardImage?.url ?? null,
+    detailImages,
     images: completeThreeViewGallery(shoe, preferredImages),
   };
 });
