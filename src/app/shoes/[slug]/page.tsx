@@ -15,6 +15,11 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
 
   const previousSlug = previousModelByCurrentSlug[shoe.slug];
   const previousShoe = previousSlug ? getDemoShoe(previousSlug) : null;
+  const galleryImages = shoe.detailImages?.length
+    ? shoe.detailImages
+    : shoe.cardImageUrl
+      ? [{ label: "Side" as const, url: shoe.cardImageUrl }]
+      : [];
 
   const specs = [
     ["Weight", shoe.weightG ? `${shoe.weightG} g` : "Not published"],
@@ -56,7 +61,7 @@ export default async function ShoePage({ params }: { params: Promise<{ slug: str
         </div>
       </div>
 
-      <ProductGallery images={shoe.images} brand={shoe.brand} model={shoe.model} />
+      <ProductGallery images={galleryImages} brand={shoe.brand} model={shoe.model} />
 
       <div className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[.72fr_1.28fr]">
         <div>
