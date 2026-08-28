@@ -57,6 +57,7 @@ export type DemoShoe = {
   accent: string;
   images: ShoeImageView[];
   cardImageUrl?: string | null;
+  detailImages?: ShoeImageView[];
   isLocalIndonesia?: boolean;
 };
 
