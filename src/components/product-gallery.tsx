@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ProductImage } from "@/components/product-image";
+import { FastDetailImage } from "@/components/fast-detail-image";
 import type { ShoeImageView } from "@/lib/types";
 
 const viewOrder: Record<ShoeImageView["label"], number> = {
@@ -15,18 +15,17 @@ const viewOrder: Record<ShoeImageView["label"], number> = {
 export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const ordered = useMemo(
-    () => [...images].sort((a, b) => viewOrder[a.label] - viewOrder[b.label]),
+    () => [...images].filter((image) => image.url).sort((a, b) => viewOrder[a.label] - viewOrder[b.label]).slice(0, 3),
     [images],
   );
+  const visible = ordered.filter((image) => !failed.has(image.url));
 
-  if (ordered.length !== 3) return null;
-
-  if (failed.size > 0) {
+  if (ordered.length === 0 || visible.length === 0) {
     return (
       <section className="py-8">
         <div className="border border-black/10 bg-white p-6">
           <p className="eyebrow">Product views</p>
-          <p className="mt-2 text-sm text-black/55">Three-view gallery temporarily unavailable while Runned verifies one exact colorway.</p>
+          <p className="mt-2 text-sm text-black/55">Product image temporarily unavailable.</p>
         </div>
       </section>
     );
@@ -38,13 +37,14 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
         <p className="eyebrow">Product views</p>
         <h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">See the shoe</h2>
       </div>
-      <div className="grid gap-px border border-black/10 bg-black/10 md:grid-cols-3">
-        {ordered.map((image) => (
+      <div className={`grid gap-px border border-black/10 bg-black/10 ${visible.length >= 3 ? "md:grid-cols-3" : visible.length === 2 ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
+        {visible.map((image, index) => (
           <figure key={`${image.label}-${image.url}`} className="bg-white">
             <div className="aspect-square overflow-hidden p-6 sm:p-8">
-              <ProductImage
+              <FastDetailImage
                 src={image.url}
                 view={image.label}
+                priority={index === 0}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {
                   const next = new Set(current);
