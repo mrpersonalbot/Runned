@@ -6,7 +6,7 @@ import type { DemoShoe } from "@/lib/types";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "brand-asc" | "model-asc" | "weight-asc";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 15;
 
 export function CatalogBrowser({ shoes }: { shoes: DemoShoe[] }) {
   const [query, setQuery] = useState("");
