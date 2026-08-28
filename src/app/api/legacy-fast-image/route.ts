@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type View = "Side" | "Top" | "Outsole";
+
 function decodeHtml(value: string) {
   return value
     .replaceAll("&quot;", '"')
@@ -20,19 +22,39 @@ function tokens(value: string) {
     .filter((token) => token.length > 1 && !["men", "mens", "women", "womens", "shoe", "shoes", "running", "road"].includes(token));
 }
 
-function score(url: string, pageUrl: string, brand: string, model: string) {
+function normalizeView(value: string | null): View {
+  if (value === "Top" || value === "Outsole") return value;
+  return "Side";
+}
+
+function viewTerms(view: View) {
+  if (view === "Top") return "top overhead upper view";
+  if (view === "Outsole") return "outsole bottom sole tread view";
+  return "side lateral profile view";
+}
+
+function angleScore(hay: string, view: View) {
+  const side = /side|lateral|profile|phsrh|phslh|sr_rt|sr_lt|side_lateral|[_/-]01(?:[_.?/-]|$)|\/sv01\//.test(hay);
+  const top = /top|overhead|upper|phst|phcth|sb_tp|[_/-]tp[_/.-]|topview|[_/-]03(?:[_.?/-]|$)/.test(hay);
+  const outsole = /outsole|bottom|sole|tread|phsbt|sb_bt|[_/-]bt[_/.-]|bottomview|[_/-]05(?:[_.?/-]|$)|\/bv\//.test(hay);
+  if (view === "Side") return (side ? 24 : 0) - (top || outsole ? 14 : 0);
+  if (view === "Top") return (top ? 28 : 0) - (side || outsole ? 14 : 0);
+  return (outsole ? 28 : 0) - (side || top ? 14 : 0);
+}
+
+function score(url: string, pageUrl: string, brand: string, model: string, view: View) {
   const hay = decodeURIComponent(`${url} ${pageUrl}`).toLowerCase();
   let value = 0;
   for (const token of tokens(`${brand} ${model}`)) {
     if (hay.includes(token)) value += token.length >= 5 ? 6 : 2;
   }
-  if (/side|lateral|profile|phsrh|sr_rt|sr_lt|[_/-]01(?:[_.?/-]|$)|sv01/.test(hay)) value += 18;
+  value += angleScore(hay, view);
   if (/product|products|footwear|shoe|cdn|media|images/.test(hay)) value += 4;
   if (/pinterest|ebay|amazon|aliexpress|temu|logo|icon|banner|sprite|avatar|review|video|watermark/.test(hay)) value -= 40;
   return value;
 }
 
-function parseProductPage(html: string, baseUrl: string, brand: string, model: string) {
+function parseProductPage(html: string, baseUrl: string, brand: string, model: string, view: View) {
   const decoded = decodeHtml(html);
   const candidates: Array<{ url: string; score: number }> = [];
   const seen = new Set<string>();
@@ -53,7 +75,7 @@ function parseProductPage(html: string, baseUrl: string, brand: string, model: s
       if (seen.has(url)) continue;
       if (!/\.(?:png|jpe?g|webp|avif)(?:\?|$)/i.test(url) && !/(?:images\.|media\.|cdn\.|cloudinary|scene7)/i.test(url)) continue;
       seen.add(url);
-      candidates.push({ url, score: score(url, baseUrl, brand, model) });
+      candidates.push({ url, score: score(url, baseUrl, brand, model, view) });
     } catch {
       // Ignore malformed image URLs.
     }
@@ -62,7 +84,7 @@ function parseProductPage(html: string, baseUrl: string, brand: string, model: s
   return candidates.sort((a, b) => b.score - a.score).map((item) => item.url);
 }
 
-function parseBing(html: string, brand: string, model: string) {
+function parseBing(html: string, brand: string, model: string, view: View) {
   const candidates: Array<{ url: string; score: number }> = [];
   const seen = new Set<string>();
   const attrs = Array.from(html.matchAll(/\sm=(?:"([^"]+)"|'([^']+)')/gi));
@@ -74,7 +96,7 @@ function parseBing(html: string, brand: string, model: string) {
       const item = JSON.parse(raw) as { murl?: string; purl?: string };
       if (!item.murl || !/^https?:\/\//i.test(item.murl) || seen.has(item.murl)) continue;
       const pageUrl = item.purl ?? "";
-      const candidateScore = score(item.murl, pageUrl, brand, model);
+      const candidateScore = score(item.murl, pageUrl, brand, model, view);
       if (candidateScore < 4) continue;
       seen.add(item.murl);
       candidates.push({ url: item.murl, score: candidateScore });
@@ -103,15 +125,21 @@ async function fetchWithTimeout(url: string, timeoutMs: number, accept: string) 
   }
 }
 
+function unsupportedDecoderPayload(contentType: string, body: ArrayBuffer) {
+  if (/avif|heif|heic/i.test(contentType)) return true;
+  const marker = Buffer.from(body).subarray(4, 20).toString("ascii").toLowerCase();
+  return /ftyp(?:avif|avis|heic|heix|mif1|msf1)/.test(marker);
+}
+
 async function fetchFirstImage(candidates: string[]) {
-  for (const candidate of candidates.slice(0, 12)) {
+  for (const candidate of candidates.slice(0, 16)) {
     try {
-      const response = await fetchWithTimeout(candidate, 3500, "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5");
+      const response = await fetchWithTimeout(candidate, 4500, "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5");
       if (!response.ok) continue;
       const contentType = response.headers.get("content-type") ?? "";
       if (!contentType.startsWith("image/")) continue;
       const body = await response.arrayBuffer();
-      if (body.byteLength < 5000) continue;
+      if (body.byteLength < 5000 || unsupportedDecoderPayload(contentType, body)) continue;
       return { body, contentType };
     } catch {
       // Try the next candidate.
@@ -124,6 +152,7 @@ export async function GET(request: NextRequest) {
   const brand = request.nextUrl.searchParams.get("brand")?.trim() ?? "";
   const model = request.nextUrl.searchParams.get("model")?.trim() ?? "";
   const source = request.nextUrl.searchParams.get("source")?.trim() ?? "";
+  const view = normalizeView(request.nextUrl.searchParams.get("view"));
 
   if (!brand || !model) return new Response("Missing historical shoe identity", { status: 400 });
 
@@ -131,25 +160,23 @@ export async function GET(request: NextRequest) {
 
   if (/^https?:\/\//i.test(source)) {
     try {
-      const page = await fetchWithTimeout(source, 4000, "text/html,application/xhtml+xml");
-      if (page.ok) candidates.push(...parseProductPage(await page.text(), source, brand, model));
+      const page = await fetchWithTimeout(source, 5000, "text/html,application/xhtml+xml");
+      if (page.ok) candidates.push(...parseProductPage(await page.text(), source, brand, model, view));
     } catch {
       // Fall through to image search.
     }
   }
 
-  if (candidates.length < 4) {
-    try {
-      const query = `\"${brand} ${model}\" side lateral product shoe`;
-      const search = await fetchWithTimeout(
-        `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC3`,
-        4500,
-        "text/html,application/xhtml+xml",
-      );
-      if (search.ok) candidates.push(...parseBing(await search.text(), brand, model));
-    } catch {
-      // Return unavailable below.
-    }
+  try {
+    const query = `\"${brand} ${model}\" ${viewTerms(view)} product shoe`;
+    const search = await fetchWithTimeout(
+      `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC3`,
+      5500,
+      "text/html,application/xhtml+xml",
+    );
+    if (search.ok) candidates.push(...parseBing(await search.text(), brand, model, view));
+  } catch {
+    // Return unavailable below.
   }
 
   const unique = Array.from(new Set(candidates));
@@ -166,6 +193,7 @@ export async function GET(request: NextRequest) {
     headers: {
       "content-type": image.contentType,
       "cache-control": "public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=604800",
+      "x-runned-fallback-view": view,
     },
   });
 }
