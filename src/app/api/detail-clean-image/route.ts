@@ -196,7 +196,7 @@ async function trimRaw(raw: RawImage): Promise<RawImage> {
   );
 }
 
-async function removeNestedCanvases(input: Buffer) {
+async function removeNestedCanvases(input: Buffer, aggressive = false) {
   let raw = await rawFromSharp(
     sharp(input, { failOn: "none", animated: false })
       .rotate()
@@ -208,15 +208,16 @@ async function removeNestedCanvases(input: Buffer) {
     if (!background.transparent) removeConnectedBackground(raw, background.color, background.threshold);
     raw = await trimRaw(raw);
 
-    // If a large inner product-card rectangle survives, its trimmed boundary
-    // is opaque along most or all four sides. Run a deliberately stronger
-    // edge-connected flood fill only in that rectangular-canvas case.
+    // A surviving product-card rectangle has opaque coverage along most of
+    // the trimmed boundary. Legacy search images are more likely to contain
+    // gray/cream cards, so only those get the stronger rescue threshold.
     const edges = opaqueEdgeCoverage(raw);
     const rectangularEdges = edges.filter((value) => value >= 0.58).length;
     if (rectangularEdges >= 3) {
       const innerBackground = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
       if (!innerBackground.transparent) {
-        removeConnectedBackground(raw, innerBackground.color, Math.max(64, innerBackground.threshold));
+        const rescueThreshold = aggressive ? 108 : 64;
+        removeConnectedBackground(raw, innerBackground.color, Math.max(rescueThreshold, innerBackground.threshold));
         raw = await trimRaw(raw);
       }
     }
@@ -231,8 +232,8 @@ function targetBox(view: string | null, width: number, height: number) {
   return { width: 1000, height: 620 };
 }
 
-async function normalize(input: Buffer, view: string | null) {
-  const raw = await removeNestedCanvases(input);
+async function normalize(input: Buffer, view: string | null, aggressive = false) {
+  const raw = await removeNestedCanvases(input, aggressive);
   const target = targetBox(view, raw.width, raw.height);
   const fitted = await sharp(raw.data, {
     raw: { width: raw.width, height: raw.height, channels: raw.channels },
@@ -262,7 +263,7 @@ function toLegacyFastSource(src: string, view: string | null) {
   const query = src.slice(src.indexOf("?") + 1);
   const params = new URLSearchParams(query);
   params.set("view", view === "Top" || view === "Outsole" ? view : "Side");
-  params.set("v", "6");
+  params.set("v", "7");
   return `/api/legacy-fast-image?${params.toString()}`;
 }
 
@@ -296,7 +297,7 @@ async function fallbackImage(request: NextRequest, brand: string, model: string,
   url.searchParams.set("brand", brand);
   url.searchParams.set("model", model);
   url.searchParams.set("view", view === "Top" || view === "Outsole" ? view : "Side");
-  url.searchParams.set("v", "6");
+  url.searchParams.set("v", "7");
   const response = await getLegacyFastImage(new NextRequest(url));
   if (!response.ok) return null;
   const body = await response.arrayBuffer();
@@ -350,13 +351,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const input = await loadSource(request, src, view, brand, model);
-    const output = await normalize(input, view);
+    const aggressive = src.startsWith("/api/legacy-shoe-image?") || src.startsWith("/api/legacy-fast-image?");
+    const output = await normalize(input, view, aggressive);
     return new Response(new Uint8Array(output), {
       status: 200,
       headers: {
         "content-type": "image/png",
         "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
-        "x-runned-image-cleanup": "nested-canvas-v6",
+        "x-runned-image-cleanup": "nested-canvas-v7",
       },
     });
   } catch (error) {
