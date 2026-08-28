@@ -8,25 +8,21 @@ type FastCardImageProps = {
   className?: string;
 };
 
-function proxyUrl(src: string) {
+function cleanedUrl(src: string) {
   if (!/^https?:\/\//i.test(src)) return src;
-  const params = new URLSearchParams({ url: src, v: "7", view: "Side" });
+  const params = new URLSearchParams({ url: src, v: "8", view: "Side" });
   return `/api/product-image?${params.toString()}`;
 }
 
 export function FastCardImage({ src, alt, className = "" }: FastCardImageProps) {
-  const fallback = useMemo(() => proxyUrl(src), [src]);
-  const [useFallback, setUseFallback] = useState(false);
+  const displaySrc = useMemo(() => cleanedUrl(src), [src]);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
-    setUseFallback(false);
     setUnavailable(false);
   }, [src]);
 
   if (!src || unavailable) return null;
-
-  const displaySrc = useFallback ? fallback : src;
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
@@ -37,13 +33,7 @@ export function FastCardImage({ src, alt, className = "" }: FastCardImageProps) 
         loading="lazy"
         decoding="async"
         referrerPolicy="no-referrer"
-        onError={() => {
-          if (!useFallback && fallback !== src) {
-            setUseFallback(true);
-            return;
-          }
-          setUnavailable(true);
-        }}
+        onError={() => setUnavailable(true)}
       />
     </div>
   );
