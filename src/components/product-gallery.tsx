@@ -12,12 +12,21 @@ const viewOrder: Record<ShoeImageView["label"], number> = {
   Rear: 4,
 };
 
+function isLegacyRuntimeImage(image: ShoeImageView) {
+  return image.url.startsWith("/api/legacy-shoe-image?");
+}
+
 export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  const ordered = useMemo(
-    () => [...images].filter((image) => image.url).sort((a, b) => viewOrder[a.label] - viewOrder[b.label]).slice(0, 3),
-    [images],
-  );
+  const ordered = useMemo(() => {
+    const source = images.some(isLegacyRuntimeImage)
+      ? images.filter((image) => !isLegacyRuntimeImage(image) || image.label === "Side")
+      : images;
+    return [...source]
+      .filter((image) => image.url)
+      .sort((a, b) => viewOrder[a.label] - viewOrder[b.label])
+      .slice(0, 3);
+  }, [images]);
   const visible = ordered.filter((image) => !failed.has(image.url));
 
   if (ordered.length === 0 || visible.length === 0) {
