@@ -12,34 +12,20 @@ type FastDetailImageProps = {
   onUnavailable?: () => void;
 };
 
-function historicalFastUrl(src: string) {
-  if (!src.startsWith("/api/legacy-shoe-image?")) return src;
-  const query = src.slice(src.indexOf("?") + 1);
-  const params = new URLSearchParams(query);
-  params.set("view", "Side");
-  params.set("v", "2");
-  return `/api/legacy-fast-image?${params.toString()}`;
+function cleanedUrl(src: string, view: ShoeImageView["label"]) {
+  const params = new URLSearchParams({ src, view, v: "3" });
+  return `/api/detail-clean-image?${params.toString()}`;
 }
 
-function proxyUrl(src: string) {
-  if (!/^https?:\/\//i.test(src)) return src;
-  const params = new URLSearchParams({ url: src, v: "1" });
-  return `/api/detail-image?${params.toString()}`;
-}
-
-export function FastDetailImage({ src, alt, priority = false, className = "", onUnavailable }: FastDetailImageProps) {
-  const primary = useMemo(() => historicalFastUrl(src), [src]);
-  const fallback = useMemo(() => proxyUrl(primary), [primary]);
-  const [useFallback, setUseFallback] = useState(false);
+export function FastDetailImage({ src, alt, view, priority = false, className = "", onUnavailable }: FastDetailImageProps) {
+  const displaySrc = useMemo(() => cleanedUrl(src, view), [src, view]);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
-    setUseFallback(false);
     setUnavailable(false);
-  }, [src]);
+  }, [src, view]);
 
   if (!src || unavailable) return null;
-  const displaySrc = useFallback ? fallback : primary;
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
@@ -52,10 +38,6 @@ export function FastDetailImage({ src, alt, priority = false, className = "", on
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => {
-          if (!useFallback && fallback !== primary) {
-            setUseFallback(true);
-            return;
-          }
           setUnavailable(true);
           onUnavailable?.();
         }}
