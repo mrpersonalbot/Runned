@@ -115,7 +115,9 @@ async function inspectOne(request: NextRequest, shoe: (typeof demoShoes)[number]
   const url = new URL("/api/detail-clean-image", request.nextUrl.origin);
   url.searchParams.set("src", image.url);
   url.searchParams.set("view", image.label);
-  url.searchParams.set("v", "3");
+  url.searchParams.set("brand", shoe.brand);
+  url.searchParams.set("model", shoe.model);
+  url.searchParams.set("v", "6");
 
   try {
     const response = await cleanDetailImage(new NextRequest(url));
