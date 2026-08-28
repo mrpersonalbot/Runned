@@ -8,9 +8,19 @@ type FastCardImageProps = {
   className?: string;
 };
 
+function historicalFastUrl(src: string) {
+  if (!src.startsWith("/api/legacy-shoe-image?")) return src;
+  const query = src.slice(src.indexOf("?") + 1);
+  const params = new URLSearchParams(query);
+  params.set("view", "Side");
+  params.set("v", "2");
+  return `/api/legacy-fast-image?${params.toString()}`;
+}
+
 function cleanedUrl(src: string) {
-  if (!/^https?:\/\//i.test(src)) return src;
-  const params = new URLSearchParams({ url: src, v: "8", view: "Side" });
+  const historical = historicalFastUrl(src);
+  if (!/^https?:\/\//i.test(historical)) return historical;
+  const params = new URLSearchParams({ url: historical, v: "8", view: "Side" });
   return `/api/product-image?${params.toString()}`;
 }
 
