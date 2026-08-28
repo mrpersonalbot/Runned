@@ -129,7 +129,6 @@ function removeConnectedBackground(raw: RawImage, background: RGB, threshold: nu
     enqueue(x, y + 1);
   }
 
-  // Remove the thin anti-aliased halo left around a solid product-card backdrop.
   const haloThreshold = Math.min(36, threshold + 7);
   for (let pass = 0; pass < 2; pass += 1) {
     const clear: number[] = [];
@@ -162,9 +161,6 @@ async function removeNestedCanvases(input: Buffer) {
       .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }),
   );
 
-  // Repeating the corner flood-fill after each trim is intentional. It removes
-  // an outer white source canvas first, then exposes and removes any centered
-  // gray/cream/white rectangle embedded inside that original image.
   for (let pass = 0; pass < 4; pass += 1) {
     const background = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
     if (!background.transparent) removeConnectedBackground(raw, background.color, background.threshold);
@@ -218,6 +214,11 @@ function toLegacyFastSource(src: string) {
   return `/api/legacy-fast-image?${params.toString()}`;
 }
 
+function decoderSafeRemoteUrl(src: string) {
+  if (/media\.(?:au|nz)\.hoka\.com/i.test(src)) return src.replace(/f=auto/gi, "f=webp");
+  return src;
+}
+
 async function loadSource(request: NextRequest, src: string) {
   const legacy = toLegacyFastSource(src);
   if (legacy) {
@@ -231,11 +232,11 @@ async function loadSource(request: NextRequest, src: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
   try {
-    const response = await fetch(src, {
+    const response = await fetch(decoderSafeRemoteUrl(src), {
       signal: controller.signal,
       headers: {
         "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
       },
       cache: "force-cache",
     });
@@ -261,7 +262,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "content-type": "image/png",
         "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
-        "x-runned-image-cleanup": "nested-canvas-v3",
+        "x-runned-image-cleanup": "nested-canvas-v4",
       },
     });
   } catch (error) {
