@@ -53,6 +53,8 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
               <FastDetailImage
                 src={image.url}
                 view={image.label}
+                brand={brand}
+                model={model}
                 priority={index === 0}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {
