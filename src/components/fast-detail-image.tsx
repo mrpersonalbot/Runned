@@ -12,6 +12,15 @@ type FastDetailImageProps = {
   onUnavailable?: () => void;
 };
 
+function historicalFastUrl(src: string) {
+  if (!src.startsWith("/api/legacy-shoe-image?")) return src;
+  const query = src.slice(src.indexOf("?") + 1);
+  const params = new URLSearchParams(query);
+  params.set("view", "Side");
+  params.set("v", "2");
+  return `/api/legacy-fast-image?${params.toString()}`;
+}
+
 function proxyUrl(src: string) {
   if (!/^https?:\/\//i.test(src)) return src;
   const params = new URLSearchParams({ url: src, v: "1" });
@@ -19,7 +28,8 @@ function proxyUrl(src: string) {
 }
 
 export function FastDetailImage({ src, alt, priority = false, className = "", onUnavailable }: FastDetailImageProps) {
-  const fallback = useMemo(() => proxyUrl(src), [src]);
+  const primary = useMemo(() => historicalFastUrl(src), [src]);
+  const fallback = useMemo(() => proxyUrl(primary), [primary]);
   const [useFallback, setUseFallback] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
 
@@ -29,7 +39,7 @@ export function FastDetailImage({ src, alt, priority = false, className = "", on
   }, [src]);
 
   if (!src || unavailable) return null;
-  const displaySrc = useFallback ? fallback : src;
+  const displaySrc = useFallback ? fallback : primary;
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
@@ -42,7 +52,7 @@ export function FastDetailImage({ src, alt, priority = false, className = "", on
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => {
-          if (!useFallback && fallback !== src) {
+          if (!useFallback && fallback !== primary) {
             setUseFallback(true);
             return;
           }
