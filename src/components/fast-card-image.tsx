@@ -10,7 +10,7 @@ type FastCardImageProps = {
 
 function cleanedUrl(src: string) {
   if (src.startsWith("/api/legacy-shoe-image?") || src.startsWith("/api/legacy-fast-image?")) {
-    const params = new URLSearchParams({ src, view: "Side", v: "3" });
+    const params = new URLSearchParams({ src, view: "Side", v: "5" });
     return `/api/detail-clean-image?${params.toString()}`;
   }
   if (!/^https?:\/\//i.test(src)) return src;
