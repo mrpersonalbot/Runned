@@ -75,7 +75,7 @@ function sampleCornerBackground(data: Buffer, width: number, height: number, cha
   return {
     transparent: false,
     color,
-    threshold: Math.max(10, Math.min(30, spread + 10)),
+    threshold: Math.max(10, Math.min(42, spread + 14)),
   };
 }
 
@@ -129,8 +129,8 @@ function removeConnectedBackground(raw: RawImage, background: RGB, threshold: nu
     enqueue(x, y + 1);
   }
 
-  const haloThreshold = Math.min(36, threshold + 7);
-  for (let pass = 0; pass < 2; pass += 1) {
+  const haloThreshold = Math.min(48, threshold + 9);
+  for (let pass = 0; pass < 3; pass += 1) {
     const clear: number[] = [];
     for (let y = 1; y < height - 1; y += 1) {
       for (let x = 1; x < width - 1; x += 1) {
@@ -161,13 +161,13 @@ async function removeNestedCanvases(input: Buffer) {
       .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }),
   );
 
-  for (let pass = 0; pass < 4; pass += 1) {
+  // Always finish every pass. Some source files contain a transparent outer
+  // margin, then a white source canvas, then a second gray/cream product-card
+  // rectangle. Early exit leaves that inner rectangle visible.
+  for (let pass = 0; pass < 6; pass += 1) {
     const background = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
     if (!background.transparent) removeConnectedBackground(raw, background.color, background.threshold);
-    const before = `${raw.width}x${raw.height}`;
     raw = await trimRaw(raw);
-    const after = `${raw.width}x${raw.height}`;
-    if (background.transparent && before === after) break;
   }
 
   return raw;
@@ -210,13 +210,26 @@ function toLegacyFastSource(src: string) {
   const query = src.slice(src.indexOf("?") + 1);
   const params = new URLSearchParams(query);
   params.set("view", "Side");
-  params.set("v", "3");
+  params.set("v", "5");
   return `/api/legacy-fast-image?${params.toString()}`;
 }
 
 function decoderSafeRemoteUrl(src: string) {
   if (/media\.(?:au|nz)\.hoka\.com/i.test(src)) return src.replace(/f=auto/gi, "f=webp");
   return src;
+}
+
+function remoteHeaders(src: string) {
+  const headers: Record<string, string> = {
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36",
+    accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
+    "accept-language": "en-US,en;q=0.8",
+  };
+  if (/alpen-group\.jp/i.test(src)) headers.referer = "https://store.alpen-group.jp/";
+  if (/sportsdirect\.com/i.test(src)) headers.referer = "https://www.sportsdirect.com/";
+  if (/kicksonfire\.com/i.test(src)) headers.referer = "https://www.kicksonfire.com/";
+  if (/ilcorridore\.com/i.test(src)) headers.referer = "https://www.ilcorridore.com/";
+  return headers;
 }
 
 async function loadSource(request: NextRequest, src: string) {
@@ -230,14 +243,11 @@ async function loadSource(request: NextRequest, src: string) {
   if (!/^https?:\/\//i.test(src) || !allowedRemoteUrls.has(src)) throw new Error("Unknown detail image");
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12_000);
+  const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
     const response = await fetch(decoderSafeRemoteUrl(src), {
       signal: controller.signal,
-      headers: {
-        "user-agent": "Mozilla/5.0 (compatible; Runned/1.0; +https://runned.app)",
-        accept: "image/webp,image/png,image/jpeg,image/*;q=0.8,*/*;q=0.5",
-      },
+      headers: remoteHeaders(src),
       cache: "force-cache",
     });
     if (!response.ok) throw new Error(`Image source returned ${response.status}`);
@@ -262,7 +272,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "content-type": "image/png",
         "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
-        "x-runned-image-cleanup": "nested-canvas-v4",
+        "x-runned-image-cleanup": "nested-canvas-v5",
       },
     });
   } catch (error) {
