@@ -142,8 +142,11 @@ export const demoShoes: DemoShoe[] = allShoes.map((shoe) => {
       qualityImagesFor(shoe.slug, canonicalImagesFor(shoe.slug, shoe.images)),
     ),
   );
+  const cardImage = preferredImages.find((image) => image.label === "Side") ?? preferredImages[0] ?? null;
+
   return {
     ...shoe,
+    cardImageUrl: cardImage?.url ?? null,
     images: completeThreeViewGallery(shoe, preferredImages),
   };
 });
