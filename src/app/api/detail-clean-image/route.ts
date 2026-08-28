@@ -28,7 +28,7 @@ async function rawFromSharp(pipeline: sharp.Sharp): Promise<RawImage> {
 }
 
 function sampleCornerBackground(data: Buffer, width: number, height: number, channels: number) {
-  const patch = Math.max(3, Math.min(16, Math.floor(Math.min(width, height) * 0.03)));
+  const patch = Math.max(3, Math.min(18, Math.floor(Math.min(width, height) * 0.035)));
   const starts = [
     [0, 0],
     [Math.max(0, width - patch), 0],
@@ -75,7 +75,7 @@ function sampleCornerBackground(data: Buffer, width: number, height: number, cha
   return {
     transparent: false,
     color,
-    threshold: Math.max(10, Math.min(42, spread + 14)),
+    threshold: Math.max(12, Math.min(44, spread + 14)),
   };
 }
 
@@ -129,7 +129,7 @@ function removeConnectedBackground(raw: RawImage, background: RGB, threshold: nu
     enqueue(x, y + 1);
   }
 
-  const haloThreshold = Math.min(48, threshold + 9);
+  const haloThreshold = Math.min(76, threshold + 10);
   for (let pass = 0; pass < 3; pass += 1) {
     const clear: number[] = [];
     for (let y = 1; y < height - 1; y += 1) {
@@ -143,6 +143,48 @@ function removeConnectedBackground(raw: RawImage, background: RGB, threshold: nu
     }
     for (const index of clear) data[index * channels + 3] = 0;
   }
+}
+
+function opaqueEdgeCoverage(raw: RawImage) {
+  const { data, width, height, channels } = raw;
+  if (channels < 4 || !width || !height) return [0, 0, 0, 0];
+  const band = Math.max(2, Math.min(6, Math.floor(Math.min(width, height) * 0.01)));
+  const visible = (x: number, y: number) => data[pixelOffset(x, y, width, channels) + 3] > 24;
+  let top = 0;
+  let topTotal = 0;
+  let right = 0;
+  let rightTotal = 0;
+  let bottom = 0;
+  let bottomTotal = 0;
+  let left = 0;
+  let leftTotal = 0;
+
+  for (let y = 0; y < Math.min(height, band); y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      topTotal += 1;
+      if (visible(x, y)) top += 1;
+    }
+  }
+  for (let y = Math.max(0, height - band); y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      bottomTotal += 1;
+      if (visible(x, y)) bottom += 1;
+    }
+  }
+  for (let x = 0; x < Math.min(width, band); x += 1) {
+    for (let y = 0; y < height; y += 1) {
+      leftTotal += 1;
+      if (visible(x, y)) left += 1;
+    }
+  }
+  for (let x = Math.max(0, width - band); x < width; x += 1) {
+    for (let y = 0; y < height; y += 1) {
+      rightTotal += 1;
+      if (visible(x, y)) right += 1;
+    }
+  }
+
+  return [top / Math.max(1, topTotal), right / Math.max(1, rightTotal), bottom / Math.max(1, bottomTotal), left / Math.max(1, leftTotal)];
 }
 
 async function trimRaw(raw: RawImage): Promise<RawImage> {
@@ -161,13 +203,23 @@ async function removeNestedCanvases(input: Buffer) {
       .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }),
   );
 
-  // Always finish every pass. Some source files contain a transparent outer
-  // margin, then a white source canvas, then a second gray/cream product-card
-  // rectangle. Early exit leaves that inner rectangle visible.
-  for (let pass = 0; pass < 6; pass += 1) {
+  for (let pass = 0; pass < 7; pass += 1) {
     const background = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
     if (!background.transparent) removeConnectedBackground(raw, background.color, background.threshold);
     raw = await trimRaw(raw);
+
+    // If a large inner product-card rectangle survives, its trimmed boundary
+    // is opaque along most or all four sides. Run a deliberately stronger
+    // edge-connected flood fill only in that rectangular-canvas case.
+    const edges = opaqueEdgeCoverage(raw);
+    const rectangularEdges = edges.filter((value) => value >= 0.58).length;
+    if (rectangularEdges >= 3) {
+      const innerBackground = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
+      if (!innerBackground.transparent) {
+        removeConnectedBackground(raw, innerBackground.color, Math.max(64, innerBackground.threshold));
+        raw = await trimRaw(raw);
+      }
+    }
   }
 
   return raw;
@@ -205,12 +257,12 @@ async function normalize(input: Buffer, view: string | null) {
     .toBuffer();
 }
 
-function toLegacyFastSource(src: string) {
+function toLegacyFastSource(src: string, view: string | null) {
   if (!src.startsWith("/api/legacy-shoe-image?") && !src.startsWith("/api/legacy-fast-image?")) return null;
   const query = src.slice(src.indexOf("?") + 1);
   const params = new URLSearchParams(query);
-  params.set("view", "Side");
-  params.set("v", "5");
+  params.set("view", view === "Top" || view === "Outsole" ? view : "Side");
+  params.set("v", "6");
   return `/api/legacy-fast-image?${params.toString()}`;
 }
 
@@ -232,12 +284,36 @@ function remoteHeaders(src: string) {
   return headers;
 }
 
-async function loadSource(request: NextRequest, src: string) {
-  const legacy = toLegacyFastSource(src);
+function unsupportedDecoderPayload(contentType: string, body: ArrayBuffer) {
+  if (/avif|heif|heic/i.test(contentType)) return true;
+  const marker = Buffer.from(body).subarray(4, 20).toString("ascii").toLowerCase();
+  return /ftyp(?:avif|avis|heic|heix|mif1|msf1)/.test(marker);
+}
+
+async function fallbackImage(request: NextRequest, brand: string, model: string, view: string | null) {
+  if (!brand || !model) return null;
+  const url = new URL("/api/legacy-fast-image", request.nextUrl.origin);
+  url.searchParams.set("brand", brand);
+  url.searchParams.set("model", model);
+  url.searchParams.set("view", view === "Top" || view === "Outsole" ? view : "Side");
+  url.searchParams.set("v", "6");
+  const response = await getLegacyFastImage(new NextRequest(url));
+  if (!response.ok) return null;
+  const body = await response.arrayBuffer();
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.startsWith("image/") || unsupportedDecoderPayload(contentType, body)) return null;
+  return Buffer.from(body);
+}
+
+async function loadSource(request: NextRequest, src: string, view: string | null, brand: string, model: string) {
+  const legacy = toLegacyFastSource(src, view);
   if (legacy) {
     const response = await getLegacyFastImage(new NextRequest(new URL(legacy, request.nextUrl.origin)));
     if (!response.ok) throw new Error(`Historical image returned ${response.status}`);
-    return Buffer.from(await response.arrayBuffer());
+    const body = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type") ?? "";
+    if (unsupportedDecoderPayload(contentType, body)) throw new Error("Historical image uses unsupported decoder format");
+    return Buffer.from(body);
   }
 
   if (!/^https?:\/\//i.test(src) || !allowedRemoteUrls.has(src)) throw new Error("Unknown detail image");
@@ -253,7 +329,13 @@ async function loadSource(request: NextRequest, src: string) {
     if (!response.ok) throw new Error(`Image source returned ${response.status}`);
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.startsWith("image/")) throw new Error("Source is not an image");
-    return Buffer.from(await response.arrayBuffer());
+    const body = await response.arrayBuffer();
+    if (unsupportedDecoderPayload(contentType, body)) throw new Error("Source uses unsupported decoder format");
+    return Buffer.from(body);
+  } catch (error) {
+    const fallback = await fallbackImage(request, brand, model, view);
+    if (fallback) return fallback;
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
@@ -262,17 +344,19 @@ async function loadSource(request: NextRequest, src: string) {
 export async function GET(request: NextRequest) {
   const src = request.nextUrl.searchParams.get("src") ?? "";
   const view = request.nextUrl.searchParams.get("view");
+  const brand = request.nextUrl.searchParams.get("brand")?.trim() ?? "";
+  const model = request.nextUrl.searchParams.get("model")?.trim() ?? "";
   if (!src) return new Response("Missing image source", { status: 400 });
 
   try {
-    const input = await loadSource(request, src);
+    const input = await loadSource(request, src, view, brand, model);
     const output = await normalize(input, view);
     return new Response(new Uint8Array(output), {
       status: 200,
       headers: {
         "content-type": "image/png",
         "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
-        "x-runned-image-cleanup": "nested-canvas-v5",
+        "x-runned-image-cleanup": "nested-canvas-v6",
       },
     });
   } catch (error) {
