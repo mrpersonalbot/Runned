@@ -10,6 +10,7 @@ import {
   localExpansionShoeImages,
 } from "@/lib/data/catalog-additions-3";
 import { catalogExpansion4 } from "@/lib/data/catalog-additions-4";
+import { popularExpansionShoes } from "@/lib/data/catalog-popular-expansion";
 import { canonicalImagesFor } from "@/lib/data/canonical-shoe-images";
 import { qualityImagesFor } from "@/lib/data/quality-image-overrides";
 import { applyImageHotfixes } from "@/lib/data/image-hotfixes";
@@ -128,6 +129,7 @@ const currentShoes = [
   cloudflow5,
   ...expansion4Unique,
   cloudsurferNext,
+  ...popularExpansionShoes,
 ];
 
 const currentSlugs = new Set(currentShoes.map((shoe) => shoe.slug));
