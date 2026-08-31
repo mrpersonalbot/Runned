@@ -11,7 +11,11 @@ const CANVAS_HEIGHT = 900;
 const TRANSPARENT = { r: 255, g: 255, b: 255, alpha: 0 };
 
 const allowedRemoteUrls = new Set(
-  demoShoes.flatMap((shoe) => (shoe.detailImages ?? []).map((image) => image.url).filter((url) => /^https?:\/\//i.test(url))),
+  demoShoes.flatMap((shoe) =>
+    (shoe.detailImages ?? [])
+      .map((image) => image.url)
+      .filter((url) => /^https?:\/\//i.test(url)),
+  ),
 );
 
 type RGB = { r: number; g: number; b: number };
@@ -66,10 +70,19 @@ function sampleCornerBackground(data: Buffer, width: number, height: number, cha
     return { transparent: true, color: { r: 255, g: 255, b: 255 }, threshold: 12 };
   }
 
-  const color = { r: Math.round(r / visible), g: Math.round(g / visible), b: Math.round(b / visible) };
+  const color = {
+    r: Math.round(r / visible),
+    g: Math.round(g / visible),
+    b: Math.round(b / visible),
+  };
   let spread = 0;
   for (const sample of samples) {
-    spread = Math.max(spread, Math.abs(sample.r - color.r), Math.abs(sample.g - color.g), Math.abs(sample.b - color.b));
+    spread = Math.max(
+      spread,
+      Math.abs(sample.r - color.r),
+      Math.abs(sample.g - color.g),
+      Math.abs(sample.b - color.b),
+    );
   }
 
   return {
@@ -129,7 +142,7 @@ function removeConnectedBackground(raw: RawImage, background: RGB, threshold: nu
     enqueue(x, y + 1);
   }
 
-  const haloThreshold = Math.min(76, threshold + 10);
+  const haloThreshold = Math.min(90, threshold + 12);
   for (let pass = 0; pass < 3; pass += 1) {
     const clear: number[] = [];
     for (let y = 1; y < height - 1; y += 1) {
@@ -184,7 +197,12 @@ function opaqueEdgeCoverage(raw: RawImage) {
     }
   }
 
-  return [top / Math.max(1, topTotal), right / Math.max(1, rightTotal), bottom / Math.max(1, bottomTotal), left / Math.max(1, leftTotal)];
+  return [
+    top / Math.max(1, topTotal),
+    right / Math.max(1, rightTotal),
+    bottom / Math.max(1, bottomTotal),
+    left / Math.max(1, leftTotal),
+  ];
 }
 
 async function trimRaw(raw: RawImage): Promise<RawImage> {
@@ -203,24 +221,29 @@ async function removeNestedCanvases(input: Buffer, aggressive = false) {
       .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }),
   );
 
-  for (let pass = 0; pass < 7; pass += 1) {
+  for (let pass = 0; pass < 8; pass += 1) {
     const background = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
     if (!background.transparent) removeConnectedBackground(raw, background.color, background.threshold);
     raw = await trimRaw(raw);
 
-    // A surviving product-card rectangle has opaque coverage along most of
-    // the trimmed boundary. Legacy search images are more likely to contain
-    // gray/cream cards, so only those get the stronger rescue threshold.
     const edges = opaqueEdgeCoverage(raw);
     const rectangularEdges = edges.filter((value) => value >= 0.58).length;
-    if (rectangularEdges >= 3) {
-      const innerBackground = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
-      if (!innerBackground.transparent) {
-        const rescueThreshold = aggressive ? 108 : 64;
-        removeConnectedBackground(raw, innerBackground.color, Math.max(rescueThreshold, innerBackground.threshold));
-        raw = await trimRaw(raw);
-      }
-    }
+    if (rectangularEdges < 3) continue;
+
+    const innerBackground = sampleCornerBackground(raw.data, raw.width, raw.height, raw.channels);
+    if (innerBackground.transparent) continue;
+
+    // Runtime/legacy search results frequently place the shoe on a second
+    // pale gray or cream product-card canvas. Use a stronger flood-fill only
+    // for that legacy path. A second escalation is allowed on later passes if
+    // a rectangular boundary still survives.
+    const rescueThreshold = aggressive ? (pass >= 3 ? 150 : 126) : 64;
+    removeConnectedBackground(
+      raw,
+      innerBackground.color,
+      Math.max(rescueThreshold, innerBackground.threshold),
+    );
+    raw = await trimRaw(raw);
   }
 
   return raw;
@@ -263,7 +286,7 @@ function toLegacyFastSource(src: string, view: string | null) {
   const query = src.slice(src.indexOf("?") + 1);
   const params = new URLSearchParams(query);
   params.set("view", view === "Top" || view === "Outsole" ? view : "Side");
-  params.set("v", "7");
+  params.set("v", "8");
   return `/api/legacy-fast-image?${params.toString()}`;
 }
 
@@ -297,7 +320,7 @@ async function fallbackImage(request: NextRequest, brand: string, model: string,
   url.searchParams.set("brand", brand);
   url.searchParams.set("model", model);
   url.searchParams.set("view", view === "Top" || view === "Outsole" ? view : "Side");
-  url.searchParams.set("v", "7");
+  url.searchParams.set("v", "8");
   const response = await getLegacyFastImage(new NextRequest(url));
   if (!response.ok) return null;
   const body = await response.arrayBuffer();
@@ -358,7 +381,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "content-type": "image/png",
         "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
-        "x-runned-image-cleanup": "nested-canvas-v7",
+        "x-runned-image-cleanup": "nested-canvas-v8",
       },
     });
   } catch (error) {
