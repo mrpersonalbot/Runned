@@ -3,7 +3,7 @@ import { CatalogBrowser } from "@/components/catalog-browser";
 import { brandDirectory, demoShoes } from "@/lib/data/catalog";
 
 export default function Home() {
-  const pricedCount = demoShoes.filter((shoe) => shoe.msrpIdr != null).length;
+  const shoeTypeCount = new Set(demoShoes.map((shoe) => shoe.category)).size;
 
   return (
     <>
@@ -28,7 +28,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-black/10 px-5 lg:px-8">
           <div className="py-6 pr-5"><p className="font-display text-3xl">{demoShoes.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">models listed</p></div>
           <div className="px-5 py-6 sm:px-6"><p className="font-display text-3xl">{brandDirectory.length}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">brand families</p></div>
-          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{pricedCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">retail prices</p></div>
+          <div className="py-6 pl-5 sm:pl-6"><p className="font-display text-3xl">{shoeTypeCount}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-black/45">shoes type</p></div>
         </div>
       </section>
 
@@ -38,16 +38,13 @@ export default function Home() {
           <Link href="/compare" className="text-sm font-semibold underline underline-offset-4">Compare two →</Link>
         </div>
         <CatalogBrowser shoes={demoShoes} />
-        <p className="mt-7 max-w-2xl text-xs leading-5 text-black/45">
-          Retail prices are indicative and can vary by colourway or promotion. Community scores in this development catalog are not real reviews.
-        </p>
       </section>
 
       <section className="border-t border-black/10">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[.7fr_1.3fr] lg:px-8 lg:py-20">
           <div><p className="eyebrow">A note on the data</p><h2 className="mt-3 max-w-sm font-display text-4xl leading-tight tracking-[-0.04em]">Useful beats impressive.</h2></div>
           <div className="max-w-2xl text-base leading-8 text-black/65">
-            <p>Runned separates the shoe itself from the things that change around it: price, availability, and what runners think. That makes it easier to add new brands without turning every product page into a sales pitch.</p>
+            <p>Runned separates the shoe itself from the things that change around it: price, availability, and what runners think.</p>
             <p className="mt-5">Every model belongs to the same index and is compared on the same terms.</p>
           </div>
         </div>
