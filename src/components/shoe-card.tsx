@@ -12,7 +12,15 @@ export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
     <Link href={`/shoes/${shoe.slug}`} className="group overflow-hidden bg-white transition hover:bg-[#fbfaf7]">
       <div className="relative aspect-[4/3] border-b border-black/10 bg-white p-5">
         <div className="absolute right-5 top-5 z-10 text-[11px] font-bold uppercase tracking-[0.12em] text-black/45">{shoe.category}</div>
-        {cardImage && <FastCardImage src={cardImage} alt={`${shoe.brand} ${shoe.model} product photo`} className="transition duration-500 group-hover:scale-[1.03]" />}
+        {cardImage && (
+          <FastCardImage
+            src={cardImage}
+            brand={shoe.brand}
+            model={shoe.model}
+            alt={`${shoe.brand} ${shoe.model} product photo`}
+            className="transition duration-500 group-hover:scale-[1.03]"
+          />
+        )}
       </div>
       <div className="p-5">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-black/50">{shoe.brand}</p>
