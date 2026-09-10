@@ -18,6 +18,7 @@ function detailCleanUrl(src: string, brand?: string, model?: string) {
 }
 
 function cleanedUrl(src: string, brand?: string, model?: string) {
+  if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1") return src;
   if (src.startsWith("/api/legacy-shoe-image?") || src.startsWith("/api/legacy-fast-image?")) {
     return detailCleanUrl(src, brand, model);
   }

@@ -12,6 +12,7 @@ type ProductImageProps = {
 };
 
 function normalizedUrl(src: string, view: ProductImageProps["view"]) {
+  if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1") return src;
   if (!/^https?:\/\//i.test(src)) return src;
   const params = new URLSearchParams({ url: src, v: "7" });
   if (view) params.set("view", view);
