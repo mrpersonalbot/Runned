@@ -46,7 +46,9 @@ export function ProductImage({ src, alt, className = "", fallbackSrcs = [], view
     setExhausted(true);
   }
 
-  if (exhausted || !candidate) return null;
+  if (exhausted || !candidate) {
+    return <div className="flex h-full w-full items-center justify-center bg-[#f4f1eb] px-6 text-center text-xs font-semibold uppercase tracking-[0.12em] text-black/35">Image unavailable</div>;
+  }
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">

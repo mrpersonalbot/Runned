@@ -30,7 +30,9 @@ export function FastDetailImage({ src, alt, view, brand = "", model = "", priori
     setUnavailable(false);
   }, [src, view, brand, model]);
 
-  if (!src || unavailable) return null;
+  if (!src || unavailable || (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && src.startsWith("/api/"))) {
+    return <div className="flex h-full w-full items-center justify-center bg-[#f4f1eb] px-6 text-center text-xs font-semibold uppercase tracking-[0.12em] text-black/35">Image unavailable</div>;
+  }
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-white">
