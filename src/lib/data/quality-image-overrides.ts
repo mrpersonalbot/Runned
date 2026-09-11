@@ -4,6 +4,9 @@ import type { ShoeImageView } from "@/lib/types";
 // blocked by their CDN, or missing useful views. Each multi-view set stays on
 // one model/SKU and one colourway.
 export const qualityImageOverrides: Record<string, ShoeImageView[]> = {
+  "puma-scend-pro-2": [
+    { label: "Side", url: "https://cdn.sanity.io/images/qa41whrn/prod/e7a2c26c2c036e0c2b3afefc5af3ef7fa1ea34dc-750x750.webp" },
+  ],
   "ortuseight-hyperglide-3-1": [
     { label: "Side", url: "https://sportaways.com/storage/products/7370/sepatu-running-ortuseight-hyperglide-31-whitemintgreenblue-fzpa-3.webp" },
     { label: "Top", url: "https://img.ncrsport.com/img/storage/large/11040134-2.jpg" },
