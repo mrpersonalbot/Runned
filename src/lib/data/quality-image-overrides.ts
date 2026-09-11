@@ -10,6 +10,9 @@ export const qualityImageOverrides: Record<string, ShoeImageView[]> = {
   "910-kishi-run": [
     { label: "Side", url: "https://910.id/cdn/shop/files/15_d780c74f-1ba8-438f-b967-d52c8b001309.png?v=1735109693" },
   ],
+  "new-balance-1080-v15": [
+    { label: "Side", url: "https://nb.scene7.com/is/image/NB/m10802hr_nb_05_i?fmt=webp&wid=1200" },
+  ],
   "puma-scend-pro-2": [
     { label: "Side", url: "https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_2000,h_2000/global/310779/01/sv01/fnd/EEA/fmt/png/Scend-Pro-2-Running-Shoes" },
   ],
