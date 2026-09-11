@@ -16,7 +16,7 @@ function isLegacyRuntimeImage(image: ShoeImageView) {
   return image.url.startsWith("/api/legacy-shoe-image?");
 }
 
-export function ProductGallery({ images, brand, model }: { images: ShoeImageView[]; brand: string; model: string }) {
+export function ProductGallery({ images, brand, model, slug }: { images: ShoeImageView[]; brand: string; model: string; slug: string }) {
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const ordered = useMemo(() => {
     const source = images.some(isLegacyRuntimeImage)
@@ -55,6 +55,7 @@ export function ProductGallery({ images, brand, model }: { images: ShoeImageView
                 view={image.label}
                 brand={brand}
                 model={model}
+                slug={slug}
                 priority={index === 0}
                 alt={`${brand} ${model}, ${image.label.toLowerCase()} view`}
                 onUnavailable={() => setFailed((current) => {

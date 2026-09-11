@@ -37,7 +37,7 @@ function cleanedUrl(src: string, brand?: string, model?: string) {
 }
 
 export function FastCardImage({ src, alt, brand, model, slug, className = "" }: FastCardImageProps) {
-  const displaySrc = useMemo(() => process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug ? `/Runned/preview-shoes/${slug}.png` : cleanedUrl(src, brand, model), [src, brand, model, slug]);
+  const displaySrc = useMemo(() => process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug ? `/Runned/preview-shoes/${slug}-side.png` : cleanedUrl(src, brand, model), [src, brand, model, slug]);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {

@@ -9,6 +9,7 @@ type ProductImageProps = {
   fallbackSrcs?: string[];
   view?: "Side" | "Top" | "Outsole" | "Alternate" | "Rear";
   onUnavailable?: () => void;
+  slug?: string;
 };
 
 function normalizedUrl(src: string, view: ProductImageProps["view"]) {
@@ -19,7 +20,7 @@ function normalizedUrl(src: string, view: ProductImageProps["view"]) {
   return `/api/product-image?${params.toString()}`;
 }
 
-export function ProductImage({ src, alt, className = "", fallbackSrcs = [], view, onUnavailable }: ProductImageProps) {
+export function ProductImage({ src, alt, className = "", fallbackSrcs = [], view, onUnavailable, slug }: ProductImageProps) {
   const candidates = useMemo(
     () => Array.from(new Set([src, ...fallbackSrcs].filter(Boolean))),
     [src, fallbackSrcs],
@@ -33,7 +34,7 @@ export function ProductImage({ src, alt, className = "", fallbackSrcs = [], view
   }, [src, view]);
 
   const candidate = candidates[candidateIndex];
-  const displaySrc = candidate ? normalizedUrl(candidate, view) : "";
+  const displaySrc = candidate ? (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug ? `/Runned/preview-shoes/${slug}-side.png` : normalizedUrl(candidate, view)) : "";
 
   function handleError() {
     const next = candidateIndex + 1;

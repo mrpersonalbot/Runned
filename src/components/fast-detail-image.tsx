@@ -9,6 +9,7 @@ type FastDetailImageProps = {
   view: ShoeImageView["label"];
   brand?: string;
   model?: string;
+  slug?: string;
   priority?: boolean;
   className?: string;
   onUnavailable?: () => void;
@@ -22,8 +23,8 @@ function cleanedUrl(src: string, view: ShoeImageView["label"], brand: string, mo
   return `/api/detail-clean-image?${params.toString()}`;
 }
 
-export function FastDetailImage({ src, alt, view, brand = "", model = "", priority = false, className = "", onUnavailable }: FastDetailImageProps) {
-  const displaySrc = useMemo(() => cleanedUrl(src, view, brand, model), [src, view, brand, model]);
+export function FastDetailImage({ src, alt, view, brand = "", model = "", slug, priority = false, className = "", onUnavailable }: FastDetailImageProps) {
+  const displaySrc = useMemo(() => process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug ? `/Runned/preview-shoes/${slug}-${view.toLowerCase()}.png` : cleanedUrl(src, view, brand, model), [src, view, brand, model, slug]);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {

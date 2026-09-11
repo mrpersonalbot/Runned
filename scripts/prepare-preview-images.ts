@@ -78,30 +78,32 @@ async function main() {
   let generated = 0;
   let missing = 0;
   const processShoe = async (shoe: (typeof demoShoes)[number]) => {
-  const candidates = [shoe.cardImageUrl, ...shoe.images.map((image) => image.url)].filter((url): url is string => Boolean(url));
-  let output: Buffer | null = null;
-  for (const candidate of [...new Set([...candidates, ...(candidates.length ? [] : await searchImage(shoe.brand, shoe.model))])]) {
-    try {
-      const input = await fetchImage(candidate);
-      if (input) { output = await removeBackdrop(input); break; }
-    } catch { /* try the next model-matched source */ }
-  };
-  if (!output) {
-    for (const candidate of await searchImage(shoe.brand, shoe.model)) {
+    for (const view of ["Side", "Top", "Outsole"] as const) {
+      const preferred = shoe.images.filter((image) => image.label === view).map((image) => image.url);
+      const candidates = [...preferred, shoe.cardImageUrl, ...shoe.images.map((image) => image.url)].filter((url): url is string => Boolean(url));
+      let output: Buffer | null = null;
+      for (const candidate of [...new Set(candidates)]) {
       try {
         const input = await fetchImage(candidate);
         if (input) { output = await removeBackdrop(input); break; }
       } catch { /* continue through search results */ }
+      }
+      if (!output) {
+        for (const candidate of await searchImage(shoe.brand, shoe.model)) {
+          try {
+            const input = await fetchImage(candidate);
+            if (input) { output = await removeBackdrop(input); break; }
+          } catch { /* continue through search results */ }
+        }
+      }
+      if (!output) {
+        const safeName = `${shoe.brand} ${shoe.model}`.replace(/[<&>]/g, "");
+        output = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750"><rect width="1000" height="750" fill="none"/><text x="500" y="360" text-anchor="middle" font-family="Arial" font-size="28" fill="#777">${safeName}</text><text x="500" y="405" text-anchor="middle" font-family="Arial" font-size="16" fill="#aaa">Image source pending</text></svg>`)).png().toBuffer();
+        missing += 1;
+      }
+      await fs.writeFile(path.join(outputDir, `${shoe.slug}-${view.toLowerCase()}.png`), output);
+      if (view === "Side") generated += 1;
     }
-  }
-  if (!output) {
-    const safeName = `${shoe.brand} ${shoe.model}`.replace(/[<&>]/g, "");
-    output = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750"><rect width="1000" height="750" fill="none"/><text x="500" y="360" text-anchor="middle" font-family="Arial" font-size="28" fill="#777">${safeName}</text><text x="500" y="405" text-anchor="middle" font-family="Arial" font-size="16" fill="#aaa">Image source pending</text></svg>`)).png().toBuffer();
-    missing += 1;
-    console.warn(`Using labeled fallback for ${shoe.brand} ${shoe.model}`);
-  }
-  await fs.writeFile(path.join(outputDir, `${shoe.slug}.png`), output);
-  generated += 1;
   };
   for (let index = 0; index < demoShoes.length; index += 8) {
     await Promise.all(demoShoes.slice(index, index + 8).map(processShoe));
