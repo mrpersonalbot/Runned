@@ -5,7 +5,7 @@ import type { ShoeImageView } from "@/lib/types";
 // one model/SKU and one colourway.
 export const qualityImageOverrides: Record<string, ShoeImageView[]> = {
   "puma-scend-pro-2": [
-    { label: "Side", url: "https://cdn.sanity.io/images/qa41whrn/prod/e7a2c26c2c036e0c2b3afefc5af3ef7fa1ea34dc-750x750.webp" },
+    { label: "Side", url: "https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_2000,h_2000/global/310779/01/sv01/fnd/EEA/fmt/png/Scend-Pro-2-Running-Shoes" },
   ],
   "ortuseight-hyperglide-3-1": [
     { label: "Side", url: "https://sportaways.com/storage/products/7370/sepatu-running-ortuseight-hyperglide-31-whitemintgreenblue-fzpa-3.webp" },
