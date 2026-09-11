@@ -24,7 +24,13 @@ function cleanedUrl(src: string, view: ShoeImageView["label"], brand: string, mo
 }
 
 export function FastDetailImage({ src, alt, view, brand = "", model = "", slug, priority = false, className = "", onUnavailable }: FastDetailImageProps) {
-  const displaySrc = useMemo(() => process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug ? `/Runned/preview-shoes/${slug}-${view.toLowerCase()}.png` : cleanedUrl(src, view, brand, model), [src, view, brand, model, slug]);
+  const displaySrc = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1" && slug) {
+      const assetView = view === "Top" ? "top" : view === "Outsole" ? "outsole" : "side";
+      return `/Runned/preview-shoes/${slug}-${assetView}.png`;
+    }
+    return cleanedUrl(src, view, brand, model);
+  }, [src, view, brand, model, slug]);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
