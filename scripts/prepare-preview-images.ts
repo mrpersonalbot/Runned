@@ -67,7 +67,7 @@ async function fetchImage(url: string) {
 async function searchImage(brand: string, model: string) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5_000);
-  const response = await fetch(`https://www.bing.com/images/search?q=${encodeURIComponent(`${brand} ${model} running shoe product photo`)}&form=HDRSC3`, { signal: controller.signal, headers: { "user-agent": "Mozilla/5.0" } }).finally(() => clearTimeout(timer));
+  const response = await fetch(`https://www.bing.com/images/search?q=${encodeURIComponent(`"${brand} ${model}" running shoe product photo`)}&form=HDRSC3`, { signal: controller.signal, headers: { "user-agent": "Mozilla/5.0" } }).finally(() => clearTimeout(timer));
   if (!response.ok) return [];
   const html = await response.text();
   return [...html.matchAll(/murl&quot;:&quot;(https?:[^&]+?)&quot;/g)].slice(0, 8).map((match) => match[1].replace(/\\u0026/g, "&"));
