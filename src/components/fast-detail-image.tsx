@@ -15,6 +15,7 @@ type FastDetailImageProps = {
 };
 
 function cleanedUrl(src: string, view: ShoeImageView["label"], brand: string, model: string) {
+  if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "1") return src;
   const params = new URLSearchParams({ src, view, v: "9" });
   if (brand) params.set("brand", brand);
   if (model) params.set("model", model);

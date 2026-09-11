@@ -35,6 +35,7 @@ const dimensions = [
 const ratingOptions = [1, 2, 3, 4, 5];
 
 export function ReviewSection({ shoeSlug }: { shoeSlug: string }) {
+  const pagesPreview = process.env.NEXT_PUBLIC_GITHUB_PAGES === "1";
   const [state, setState] = useState<ReviewState>({ authenticated: false, configured: true, catalogSynced: true, reviews: [] });
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -58,7 +59,14 @@ export function ReviewSection({ shoeSlug }: { shoeSlug: string }) {
     }
   }
 
-  useEffect(() => { void loadReviews(); }, [shoeSlug]);
+  useEffect(() => {
+    if (pagesPreview) {
+      setLoading(false);
+      setState({ authenticated: false, configured: false, catalogSynced: false, reviews: [] });
+      return;
+    }
+    void loadReviews();
+  }, [pagesPreview, shoeSlug]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
