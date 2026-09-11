@@ -4,6 +4,12 @@ import type { ShoeImageView } from "@/lib/types";
 // blocked by their CDN, or missing useful views. Each multi-view set stays on
 // one model/SKU and one colourway.
 export const qualityImageOverrides: Record<string, ShoeImageView[]> = {
+  "on-cloudflow-4": [
+    { label: "Side", url: "https://images.ctfassets.net/hnk2vsx53n6l/2BMCKepAfn6CKplHmi5oZQ/2f2d7ca28c2bf3bb2fa05e736b397fb1/aqwbygsuv2s0bvtdlwcp.png?w=1600&h=1600&fm=webp&f=center&fit=fill&q=80" },
+  ],
+  "910-kishi-run": [
+    { label: "Side", url: "https://910.id/cdn/shop/files/15_d780c74f-1ba8-438f-b967-d52c8b001309.png?v=1735109693" },
+  ],
   "puma-scend-pro-2": [
     { label: "Side", url: "https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_2000,h_2000/global/310779/01/sv01/fnd/EEA/fmt/png/Scend-Pro-2-Running-Shoes" },
   ],
