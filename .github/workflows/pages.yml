@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Prepare transparent catalog images
+        run: npm exec tsx scripts/prepare-preview-images.ts
       - name: Remove server-only routes for static preview
         run: |
           mv src/app/api /tmp/runned-api

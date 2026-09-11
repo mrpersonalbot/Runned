@@ -4,6 +4,7 @@
 # next.js
 /.next/
 /out/
+/public/preview-shoes/
 
 # production
 /build

@@ -17,6 +17,7 @@ export function ShoeCard({ shoe }: { shoe: DemoShoe }) {
             src={cardImage}
             brand={shoe.brand}
             model={shoe.model}
+            slug={shoe.slug}
             alt={`${shoe.brand} ${shoe.model} product photo`}
             className="transition duration-500 group-hover:scale-[1.03]"
           />
